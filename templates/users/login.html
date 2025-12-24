@@ -1,0 +1,32 @@
+<!-- templates/users/login.html -->
+{% extends 'base.html' %}
+
+{% block title %}Вход в систему{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0"><i class="fas fa-sign-in-alt"></i> Вход в аккаунт</h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <!-- Мы временно используем стандартную форму Django -->
+                    {{ form.as_p }}
+                    <div class="d-grid gap-2 mt-3">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-sign-in-alt"></i> Войти
+                        </button>
+                    </div>
+                </form>
+                <hr>
+                <p class="text-center mb-0">
+                    Нет аккаунта? <a href="#">Зарегистрируйтесь</a> (функция в разработке)
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

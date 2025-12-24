@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Главная - RentAnalyzer Pro{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto text-center">
+        <h1 class="display-4 mb-4">Анализ рынка аренды жилья</h1>
+        <p class="lead">Узнайте справедливую стоимость аренды вашей квартиры на основе статистического анализа рыночных данных</p>
+
+        <div class="row mt-5">
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <i class="fas fa-chart-bar fa-3x text-primary mb-3"></i>
+                        <h5>Статистический анализ</h5>
+                        <p>Расчет медианной цены, квартилей и стандартного отклонения</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <i class="fas fa-map-marked-alt fa-3x text-success mb-3"></i>
+                        <h5>Геоанализ</h5>
+                        <p>Учет расположения, района и инфраструктуры</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <i class="fas fa-file-pdf fa-3x text-danger mb-3"></i>
+                        <h5>Детальные отчеты</h5>
+                        <p>Графики, таблицы и рекомендации в одном документе</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-5">
+            {% if user.is_authenticated %}
+                <a href="{% url 'analyzer:analyze' %}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-plus"></i> Начать новый анализ
+                </a>
+            {% else %}
+                <a href="{% url 'users:register' %}" class="btn btn-primary btn-lg me-3">
+                    <i class="fas fa-user-plus"></i> Начать бесплатно
+                </a>
+                <a href="{% url 'users:login' %}" class="btn btn-outline-primary btn-lg">
+                    <i class="fas fa-sign-in-alt"></i> Войти
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
