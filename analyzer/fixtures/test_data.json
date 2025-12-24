@@ -1,0 +1,120 @@
+[
+  {
+    "model": "analyzer.city",
+    "pk": 1,
+    "fields": {
+      "name": "Москва",
+      "slug": "moskva",
+      "avg_price_per_sqm": 2800.00,
+      "population": 13000000,
+      "description": "Столица России, самый крупный город страны."
+    }
+  },
+  {
+    "model": "analyzer.city",
+    "pk": 2,
+    "fields": {
+      "name": "Санкт-Петербург",
+      "slug": "sankt-peterburg",
+      "avg_price_per_sqm": 1900.00,
+      "population": 5400000,
+      "description": "Второй по величине город России, культурная столица."
+    }
+  },
+  {
+    "model": "analyzer.city",
+    "pk": 3,
+    "fields": {
+      "name": "Екатеринбург",
+      "slug": "ekaterinburg",
+      "avg_price_per_sqm": 1200.00,
+      "population": 1500000,
+      "description": "Крупный город на Урале, административный центр Свердловской области."
+    }
+  },
+  {
+    "model": "analyzer.marketoffer",
+    "pk": 1,
+    "fields": {
+      "city": 1,
+      "source": "mock",
+      "external_id": "avito_001",
+      "address": "ул. Тверская, д. 10",
+      "area": 45.50,
+      "rooms": 2,
+      "price": 85000.00,
+      "url": "https://example.com/offer1",
+      "is_active": true,
+      "parsed_date": "2025-12-24T20:00:00Z",
+      "additional_info": {"has_furniture": true, "metro": "Тверская"}
+    }
+  },
+  {
+    "model": "analyzer.marketoffer",
+    "pk": 2,
+    "fields": {
+      "city": 1,
+      "source": "mock",
+      "external_id": "avito_002",
+      "address": "пр. Ленинградский, д. 25",
+      "area": 65.30,
+      "rooms": 3,
+      "price": 120000.00,
+      "url": "https://example.com/offer2",
+      "is_active": true,
+      "parsed_date": "2025-12-23T19:00:00Z",
+      "additional_info": {"has_furniture": false, "metro": "Войковская"}
+    }
+  },
+  {
+    "model": "analyzer.marketoffer",
+    "pk": 3,
+    "fields": {
+      "city": 2,
+      "source": "mock",
+      "external_id": "cian_001",
+      "address": "Невский пр., д. 50",
+      "area": 55.20,
+      "rooms": 2,
+      "price": 65000.00,
+      "url": "https://example.com/offer3",
+      "is_active": true,
+      "parsed_date": "2025-12-22T18:00:00Z",
+      "additional_info": {"has_furniture": true, "metro": "Невский проспект"}
+    }
+  },
+  {
+    "model": "analyzer.marketoffer",
+    "pk": 4,
+    "fields": {
+      "city": 2,
+      "source": "mock",
+      "external_id": "cian_002",
+      "address": "ул. Садовая, д. 15",
+      "area": 38.70,
+      "rooms": 1,
+      "price": 45000.00,
+      "url": "https://example.com/offer4",
+      "is_active": true,
+      "parsed_date": "2025-12-21T17:00:00Z",
+      "additional_info": {"has_furniture": true, "metro": "Сенная площадь"}
+    }
+  },
+  {
+    "model": "analyzer.marketoffer",
+    "pk": 5,
+    "fields": {
+      "city": 3,
+      "source": "mock",
+      "external_id": "yandex_001",
+      "address": "ул. Ленина, д. 30",
+      "area": 42.50,
+      "rooms": 1,
+      "price": 28000.00,
+      "url": "https://example.com/offer5",
+      "is_active": true,
+      "parsed_date": "2025-12-20T16:00:00Z",
+      "additional_info": {"has_furniture": false, "metro": "Геологическая"}
+    }
+  }
+]

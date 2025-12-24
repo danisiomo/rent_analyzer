@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+
+{% block title %}Личный кабинет{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-10 mx-auto">
+        <h1 class="mb-4"><i class="fas fa-tachometer-alt"></i> Личный кабинет</h1>
+        
+        <!-- Приветствие -->
+        <div class="alert alert-info">
+            <h4 class="alert-heading">Добро пожаловать, {{ user.username }}!</h4>
+            <p>Здесь вы можете управлять своими квартирами и просматривать отчеты анализа.</p>
+        </div>
+
+        <!-- Быстрые действия -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <i class="fas fa-plus-circle fa-3x text-primary mb-3"></i>
+                        <h5>Новый анализ</h5>
+                        <p>Проанализировать новую квартиру</p>
+                        <a href="{% url 'analyzer:analyze' %}" class="btn btn-primary">Начать</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <i class="fas fa-city fa-3x text-success mb-3"></i>
+                        <h5>Города</h5>
+                        <p>Просмотр всех городов</p>
+                        <a href="{% url 'analyzer:city_list' %}" class="btn btn-success">Смотреть</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <i class="fas fa-list-alt fa-3x text-info mb-3"></i>
+                        <h5>Предложения</h5>
+                        <p>Рыночные предложения</p>
+                        <a href="{% url 'analyzer:market_offers' %}" class="btn btn-info">Изучить</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Мои квартиры -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-home"></i> Мои квартиры</h5>
+            </div>
+            <div class="card-body">
+                {% if user_apartments %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Адрес</th>
+                                    <th>Город</th>
+                                    <th>Площадь</th>
+                                    <th>Комнаты</th>
+                                    <th>Желаемая цена</th>
+                                    <th>Дата добавления</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for apartment in user_apartments %}
+                                <tr>
+                                    <td>{{ apartment.address }}</td>
+                                    <td>{{ apartment.city.name }}</td>
+                                    <td>{{ apartment.area }} м²</td>
+                                    <td>{{ apartment.rooms }}-к</td>
+                                    <td>{{ apartment.desired_price }} руб.</td>
+                                    <td>{{ apartment.created_at|date:"d.m.Y" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-home fa-3x text-muted mb-3"></i>
+                        <h5>У вас пока нет добавленных квартир</h5>
+                        <p>Начните с анализа своей первой квартиры</p>
+                        <a href="{% url 'analyzer:analyze' %}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Добавить квартиру
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Мои отчеты -->
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-file-alt"></i> Мои отчеты анализа</h5>
+            </div>
+            <div class="card-body">
+                {% if reports %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Квартира</th>
+                                    <th>Справедливая цена</th>
+                                    <th>Разница</th>
+                                    <th>Похожих предложений</th>
+                                    <th>Рекомендация</th>
+                                    <th>Дата анализа</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for report in reports %}
+                                <tr>
+                                    <td>{{ report.apartment.address|truncatechars:30 }}</td>
+                                    <td>{{ report.fair_price }} руб.</td>
+                                    <td>
+                                        {% if report.price_difference > 0 %}
+                                            <span class="text-success">+{{ report.price_difference }} руб.</span>
+                                        {% elif report.price_difference < 0 %}
+                                            <span class="text-danger">{{ report.price_difference }} руб.</span>
+                                        {% else %}
+                                            <span class="text-muted">{{ report.price_difference }} руб.</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ report.similar_offers_count }}</td>
+                                    <td>{{ report.get_recommendation_type }}</td>
+                                    <td>{{ report.created_at|date:"d.m.Y" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-chart-bar fa-3x text-muted mb-3"></i>
+                        <h5>У вас пока нет отчетов анализа</h5>
+                        <p>Добавьте квартиру и запустите анализ</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

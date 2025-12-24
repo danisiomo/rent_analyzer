@@ -44,11 +44,9 @@
                     <i class="fas fa-plus"></i> Начать новый анализ
                 </a>
             {% else %}
-                <a href="{% url 'users:register' %}" class="btn btn-primary btn-lg me-3">
-                    <i class="fas fa-user-plus"></i> Начать бесплатно
-                </a>
-                <a href="{% url 'users:login' %}" class="btn btn-outline-primary btn-lg">
-                    <i class="fas fa-sign-in-alt"></i> Войти
+                <!-- Ссылка на регистрацию временно удалена -->
+                <a href="{% url 'users:login' %}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-sign-in-alt"></i> Войти и начать анализ
                 </a>
             {% endif %}
         </div>
