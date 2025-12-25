@@ -1,0 +1,214 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-10 mx-auto">
+        <!-- Заголовок -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1><i class="fas fa-chart-line"></i> Результаты анализа</h1>
+            <div>
+                <a href="{% url 'analyzer:save_analysis_report' apartment.id %}" class="btn btn-success">
+                    <i class="fas fa-save"></i> Сохранить отчет
+                </a>
+                <a href="{% url 'analyzer:analyze_apartment' apartment.id %}" class="btn btn-outline-primary">
+                    <i class="fas fa-redo"></i> Повторить анализ
+                </a>
+            </div>
+        </div>
+        
+        <!-- Информация о квартире -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-home"></i> Анализируемая квартира</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <h6>{{ apartment.address }}</h6>
+                        <p class="mb-1"><strong>Город:</strong> {{ apartment.city.name }}</p>
+                        <p class="mb-1"><strong>Площадь:</strong> {{ apartment.area }} м² | <strong>Комнат:</strong> {{ apartment.rooms }}</p>
+                        <p class="mb-1"><strong>Этаж:</strong> {{ apartment.floor }}/{{ apartment.total_floors }}</p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <div class="display-6 text-primary">{{ apartment.desired_price }} руб.</div>
+                        <small class="text-muted">Желаемая цена аренды</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Основные результаты -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <h6>Найдено похожих</h6>
+                        <h2 class="text-primary">{{ similar_count }}</h2>
+                        <p class="mb-0">предложений</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <h6>Справедливая цена</h6>
+                        <h2 class="text-success">{{ results.fair_price }} руб.</h2>
+                        <p class="mb-0">рекомендуемая</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <h6>Разница</h6>
+                        {% if results.price_difference|slice:"0:1" == "-" %}
+                            <h2 class="text-danger">{{ results.price_difference }}%</h2>
+                            <p class="mb-0">ваша цена выше</p>
+                        {% else %}
+                            <h2 class="text-warning">+{{ results.price_difference }}%</h2>
+                            <p class="mb-0">ваша цена ниже</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <h6>Рыночный диапазон</h6>
+                        <h4>{{ results.price_range }} руб.</h4>
+                        <p class="mb-0">мин - макс</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Рекомендация -->
+        <div class="card mb-4 border-{{ results.recommendation_type }}">
+            <div class="card-header bg-{{ results.recommendation_type }} text-white">
+                <h5 class="mb-0"><i class="fas fa-lightbulb"></i> Рекомендация</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-{{ results.recommendation_type }}">
+                    <h4 class="alert-heading">
+                        {% if results.recommendation_type == 'success' %}
+                            <i class="fas fa-check-circle"></i> Отлично!
+                        {% elif results.recommendation_type == 'warning' %}
+                            <i class="fas fa-exclamation-triangle"></i> Внимание!
+                        {% elif results.recommendation_type == 'danger' %}
+                            <i class="fas fa-times-circle"></i> Требуется корректировка!
+                        {% else %}
+                            <i class="fas fa-info-circle"></i> Информация
+                        {% endif %}
+                    </h4>
+                    <p class="lead">{{ results.recommendation }}</p>
+                    <hr>
+                    <p class="mb-0">
+                        <strong>Совет:</strong> 
+                        {% if results.recommendation_type == 'success' %}
+                            Вы можете установить цену {{ results.fair_price }} руб. для быстрой аренды.
+                        {% elif results.recommendation_type == 'warning' %}
+                            Рассмотрите возможность повышения цены до {{ results.fair_price }} руб.
+                        {% else %}
+                            Рекомендуем снизить цену до {{ results.fair_price }} руб.
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Статистика -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Статистика по похожим предложениям</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <h6>Средняя цена</h6>
+                        <h4>{{ results.avg_price }} руб.</h4>
+                    </div>
+                    <div class="col-md-3">
+                        <h6>Медианная цена</h6>
+                        <h4>{{ results.median_price }} руб.</h4>
+                    </div>
+                    <div class="col-md-3">
+                        <h6>Минимальная</h6>
+                        <h4 class="text-success">{{ results.min_price }} руб.</h4>
+                    </div>
+                    <div class="col-md-3">
+                        <h6>Максимальная</h6>
+                        <h4 class="text-danger">{{ results.max_price }} руб.</h4>
+                    </div>
+                </div>
+                <div class="row mt-4">
+                    <div class="col-md-6 offset-md-3 text-center">
+                        <h6>Средняя цена за м²</h6>
+                        <h3 class="text-primary">{{ results.avg_price_per_sqm|floatformat:2 }} руб./м²</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Похожие предложения (таблица) -->
+        {% if similar_offers %}
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-list-alt"></i> Похожие рыночные предложения</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Адрес</th>
+                                <th>Площадь</th>
+                                <th>Этаж</th>
+                                <th>Цена</th>
+                                <th>Цена за м²</th>
+                                <th>Источник</th>
+                                <th>Дата</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for offer in similar_offers %}
+                            <tr>
+                                <td>{{ offer.address|truncatechars:30 }}</td>
+                                <td>{{ offer.area }} м²</td>
+                                <td>{{ offer.floor }}</td>
+                                <td><strong>{{ offer.price }} руб.</strong></td>
+                                <td>{{ offer.price_per_sqm|floatformat:2 }} руб.</td>
+                                <td>
+                                    <span class="badge bg-info">{{ offer.get_source_display }}</span>
+                                </td>
+                                <td>{{ offer.parsed_date|date:"d.m.Y" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="text-center mt-3">
+                    <small class="text-muted">Показано {{ similar_offers|length }} из {{ similar_count }} найденных предложений</small>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Действия -->
+        <div class="card mt-4">
+            <div class="card-body text-center">
+                <a href="{% url 'analyzer:save_analysis_report' apartment.id %}" class="btn btn-success btn-lg me-3">
+                    <i class="fas fa-save"></i> Сохранить отчет в истории
+                </a>
+                <a href="{% url 'analyzer:analyze_apartment' apartment.id %}" class="btn btn-primary btn-lg me-3">
+                    <i class="fas fa-redo"></i> Повторить с другими параметрами
+                </a>
+                <a href="{% url 'analyzer:dashboard' %}" class="btn btn-outline-secondary btn-lg">
+                    <i class="fas fa-tachometer-alt"></i> В личный кабинет
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

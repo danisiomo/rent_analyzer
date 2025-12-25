@@ -139,6 +139,41 @@ class Apartment(models.Model):
     def get_absolute_url(self):
         return reverse('analyzer:apartment_detail', kwargs={'pk': self.pk})
 
+    latitude = models.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        verbose_name='Широта',
+        blank=True,
+        null=True,
+        help_text='Географическая широта (автоматически заполняется)'
+    )
+
+    longitude = models.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        verbose_name='Долгота',
+        blank=True,
+        null=True,
+        help_text='Географическая долгота (автоматически заполняется)'
+    )
+
+    def save(self, *args, **kwargs):
+        """Автоматическое геокодирование при сохранении"""
+        from utils.geocoder import geocoder
+
+        # Геокодируем только если адрес изменился и координаты еще не установлены
+        if self.address and (not self.latitude or not self.longitude):
+            try:
+                result = geocoder.geocode(self.address, self.city.name if self.city else None)
+                if result:
+                    self.latitude = result['lat']
+                    self.longitude = result['lon']
+            except Exception as e:
+                # Логируем ошибку, но не прерываем сохранение
+                print(f"Geocoding error for apartment {self.id}: {e}")
+
+        super().save(*args, **kwargs)
+
 
 class MarketOffer(models.Model):
     """Модель рыночных предложений (данные из внешних источников)"""
@@ -180,6 +215,14 @@ class MarketOffer(models.Model):
     rooms = models.IntegerField(
         verbose_name='Количество комнат'
     )
+
+    floor = models.IntegerField(
+        verbose_name='Этаж',
+        blank=True,
+        null=True,
+        help_text='На каком этаже находится квартира'
+    )
+
     price = models.DecimalField(
         max_digits=10,
         decimal_places=2,

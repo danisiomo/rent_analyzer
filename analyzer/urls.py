@@ -9,9 +9,12 @@ urlpatterns = [
 
     # Личный кабинет пользователя
     path('dashboard/', views.dashboard, name='dashboard'),
-
-    # Форма для анализа
-    path('analyze/', views.analyze_form, name='analyze'),
+    path('update-data/', views.update_market_data, name='update_market_data'),
+    # Квартиры
+    path('apartment/add/', views.add_apartment, name='add_apartment'),
+    path('apartment/<int:apartment_id>/analyze/', views.analyze_apartment, name='analyze_apartment'),
+    path('apartment/<int:apartment_id>/results/', views.analysis_results, name='analysis_results'),
+    path('apartment/<int:apartment_id>/save-report/', views.save_analysis_report, name='save_analysis_report'),
 
     # Список городов
     path('cities/', views.CityListView.as_view(), name='city_list'),

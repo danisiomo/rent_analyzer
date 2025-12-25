@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-10 mx-auto">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="fas fa-chart-line"></i> {{ title }}</h4>
+            </div>
+            <div class="card-body">
+                <!-- Информация о квартире -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Параметры анализируемой квартиры</h5>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <p><strong>Адрес:</strong> {{ apartment.address }}</p>
+                                <p><strong>Город:</strong> {{ apartment.city.name }}</p>
+                                <p><strong>Площадь:</strong> {{ apartment.area }} м²</p>
+                            </div>
+                            <div class="col-md-4">
+                                <p><strong>Комнат:</strong> {{ apartment.rooms }}</p>
+                                <p><strong>Этаж:</strong> {{ apartment.floor }} из {{ apartment.total_floors }}</p>
+                                <p><strong>Балкон:</strong> {% if apartment.has_balcony %}Есть{% else %}Нет{% endif %}</p>
+                            </div>
+                            <div class="col-md-4">
+                                <p><strong>Ремонт:</strong> {{ apartment.get_repair_type_display }}</p>
+                                <p><strong>Желаемая цена:</strong> {{ apartment.desired_price }} руб./мес.</p>
+                                <p><strong>Дата добавления:</strong> {{ apartment.created_at|date:"d.m.Y" }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Форма настройки анализа -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-sliders-h"></i> Настройки анализа</h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="post" novalidate>
+                            {% csrf_token %}
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    {{ form.area_tolerance|as_crispy_field }}
+                                    {{ form.price_tolerance|as_crispy_field }}
+                                </div>
+                                <div class="col-md-6">
+                                    {{ form.min_similar_offers|as_crispy_field }}
+                                    <div class="mt-4">
+                                        {{ form.include_same_floor|as_crispy_field }}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="alert alert-warning mt-3">
+                                <h6><i class="fas fa-lightbulb"></i> Совет по настройке:</h6>
+                                <p class="mb-0">
+                                    Чем уже допустимые отклонения, тем точнее будут похожие предложения, 
+                                    но их может оказаться меньше. Для первого анализа используйте рекомендуемые значения.
+                                </p>
+                            </div>
+                            
+                            <div class="mt-4">
+                                <button type="submit" class="btn btn-success btn-lg">
+                                    <i class="fas fa-play-circle"></i> Запустить анализ
+                                </button>
+                                <a href="{% url 'analyzer:dashboard' %}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-arrow-left"></i> Вернуться в кабинет
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Что будет анализироваться -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-search"></i> Что будет проанализировано?</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="text-center">
+                                    <i class="fas fa-home fa-2x text-primary mb-2"></i>
+                                    <h6>Поиск похожих предложений</h6>
+                                    <p>Система найдет квартиры с аналогичными параметрами на рынке</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center">
+                                    <i class="fas fa-calculator fa-2x text-success mb-2"></i>
+                                    <h6>Статистический анализ</h6>
+                                    <p>Расчет средней, медианной цены и других статистических показателей</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center">
+                                    <i class="fas fa-chart-bar fa-2x text-info mb-2"></i>
+                                    <h6>Рекомендации</h6>
+                                    <p>Персональные рекомендации по установке оптимальной цены</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

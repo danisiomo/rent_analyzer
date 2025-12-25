@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-warning">
+                <h4 class="mb-0"><i class="fas fa-sync-alt"></i> {{ title }}</h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <h5><i class="fas fa-info-circle"></i> Как это работает?</h5>
+                    <p>
+                        Система собирает актуальные данные о ценах на аренду жилья 
+                        из различных источников и обновляет базу данных.
+                    </p>
+                </div>
+                
+                <form method="post" class="mt-4">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="city_id" class="form-label">Выберите город</label>
+                        <select name="city_id" id="city_id" class="form-select">
+                            <option value="">Все города</option>
+                            {% for city in cities %}
+                                <option value="{{ city.id }}">{{ city.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">Оставьте пустым для обновления всех городов</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="limit" class="form-label">Количество предложений на город</label>
+                        <input type="number" name="limit" id="limit" class="form-control" 
+                               value="50" min="10" max="200">
+                        <div class="form-text">Рекомендуется 20-100 предложений</div>
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <h6><i class="fas fa-exclamation-triangle"></i> Внимание!</h6>
+                        <p class="mb-0">
+                            Обновление данных может занять несколько минут. 
+                            Старые данные будут деактивированы (старше 60 дней).
+                        </p>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-warning btn-lg">
+                            <i class="fas fa-play-circle"></i> Запустить обновление данных
+                        </button>
+                        <a href="{% url 'analyzer:market_offers' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times"></i> Отмена
+                        </a>
+                    </div>
+                </form>
+                
+                <!-- Статистика -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Текущая статистика</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-md-4">
+                                <h6>Всего городов</h6>
+                                <h3 class="text-primary">{{ cities|length }}</h3>
+                            </div>
+                            <div class="col-md-4">
+                                <h6>Активных предложений</h6>
+                                {% with active_count=market_offers|length %}
+                                <h3 class="text-success">{{ active_count }}</h3>
+                                {% endwith %}
+                            </div>
+                            <div class="col-md-4">
+                                <h6>Средняя цена за м²</h6>
+                                <h3 class="text-info">
+                                    {% if cities %}
+                                        {{ cities.0.avg_price_per_sqm }} руб.
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

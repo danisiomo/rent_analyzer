@@ -1,0 +1,184 @@
+{% extends 'base.html' %}
+
+{% block title %}Рыночные предложения{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-10 mx-auto">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1><i class="fas fa-list-alt"></i> Рыночные предложения</h1>
+            <div>
+                <span class="badge bg-success">{{ offers.count }} предложений</span>
+            </div>
+        </div>
+
+        <!-- Фильтры -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-filter"></i> Фильтры</h5>
+                <form method="get" class="row g-3">
+                    <div class="col-md-6">
+                        <label for="city" class="form-label">Город</label>
+                        <select name="city" id="city" class="form-select">
+                            <option value="">Все города</option>
+                            <!-- Здесь будут города -->
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="rooms" class="form-label">Количество комнат</label>
+                        <select name="rooms" id="rooms" class="form-select">
+                            <option value="">Любое</option>
+                            <option value="1">1 комната</option>
+                            <option value="2">2 комнаты</option>
+                            <option value="3">3 комнаты</option>
+                            <option value="4">4+ комнаты</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i> Применить фильтры
+                        </button>
+                        <a href="{% url 'analyzer:market_offers' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times"></i> Сбросить
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Список предложений -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Список предложений</h5>
+            </div>
+            <div class="card-body">
+                {% if offers %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Адрес</th>
+                                    <th>Город</th>
+                                    <th>Площадь</th>
+                                    <th>Комнаты</th>
+                                    <th>Цена</th>
+                                    <th>Цена за м²</th>
+                                    <th>Источник</th>
+                                    <th>Дата</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for offer in offers %}
+                                <tr>
+                                    <td>{{ offer.address|truncatechars:25 }}</td>
+                                    <td>{{ offer.city.name }}</td>
+                                    <td>{{ offer.area }} м²</td>
+                                    <td>{{ offer.rooms }}-к</td>
+                                    <td><strong>{{ offer.price }} руб.</strong></td>
+                                    <td>{{ offer.price_per_sqm }} руб./м²</td>
+                                    <td>
+                                        <span class="badge bg-info">{{ offer.get_source_display }}</span>
+                                    </td>
+                                    <td>{{ offer.parsed_date|date:"d.m.Y" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Пагинация -->
+                    {% if is_paginated %}
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Назад</a>
+                            </li>
+                            {% endif %}
+                            
+                            {% for num in page_obj.paginator.page_range %}
+                            <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                            {% endfor %}
+                            
+                            {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}">Вперед</a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                        <h4>Предложения не найдены</h4>
+                        <p>Попробуйте изменить параметры фильтрации</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Статистика -->
+        <div class="row mt-4">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h6>Средняя цена</h6>
+                        <h4 class="text-primary">
+                            {% if offers %}
+                                {{ avg_price|floatformat:0 }} руб.
+                            {% else %}
+                                -
+                            {% endif %}
+                        </h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h6>Минимальная цена</h6>
+                        <h4 class="text-success">
+                            {% if offers %}
+                                {{ min_price|floatformat:0 }} руб.
+                            {% else %}
+                                -
+                            {% endif %}
+                        </h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h6>Максимальная цена</h6>
+                        <h4 class="text-danger">
+                            {% if offers %}
+                                {{ max_price|floatformat:0 }} руб.
+                            {% else %}
+                                -
+                            {% endif %}
+                        </h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Автозаполнение фильтров из URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const city = urlParams.get('city');
+    const rooms = urlParams.get('rooms');
+    
+    if (city) document.getElementById('city').value = city;
+    if (rooms) document.getElementById('rooms').value = rooms;
+});
+</script>
+{% endblock %}

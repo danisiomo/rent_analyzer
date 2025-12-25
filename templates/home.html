@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Главная - RentAnalyzer Pro{% endblock %}
+{% block title %}Главная - RentAnalyzer{% endblock %}
 
 {% block content %}
 <div class="row">
@@ -40,7 +40,7 @@
 
         <div class="mt-5">
             {% if user.is_authenticated %}
-                <a href="{% url 'analyzer:analyze' %}" class="btn btn-primary btn-lg">
+                <a href="{% url 'analyzer:add_apartment' %}" class="btn btn-primary btn-lg">
                     <i class="fas fa-plus"></i> Начать новый анализ
                 </a>
             {% else %}

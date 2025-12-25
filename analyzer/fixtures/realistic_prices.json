@@ -1,0 +1,35 @@
+[
+  {
+    "model": "analyzer.city",
+    "pk": 1,
+    "fields": {
+      "name": "Москва",
+      "slug": "moskva",
+      "avg_price_per_sqm": "2500.00",
+      "population": 13000000,
+      "description": "Столица России, самый дорогой рынок аренды"
+    }
+  },
+  {
+    "model": "analyzer.city",
+    "pk": 2,
+    "fields": {
+      "name": "Санкт-Петербург",
+      "slug": "sankt-peterburg",
+      "avg_price_per_sqm": "1800.00",
+      "population": 5600000,
+      "description": "Северная столица России"
+    }
+  },
+  {
+    "model": "analyzer.city",
+    "pk": 3,
+    "fields": {
+      "name": "Новосибирск",
+      "slug": "novosibirsk",
+      "avg_price_per_sqm": "900.00",
+      "population": 1600000,
+      "description": "Крупнейший город Сибири"
+    }
+  }
+]

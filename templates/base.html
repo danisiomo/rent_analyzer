@@ -32,7 +32,7 @@
                             <a class="nav-link" href="{% url 'analyzer:dashboard' %}">Мои квартиры</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'analyzer:analyze' %}">Новый анализ</a>
+                            <a class="nav-link" href="{% url 'analyzer:add_apartment' %}">Новый анализ</a>
                         </li>
                         <li class="nav-item">
                             <span class="nav-link">Привет, {{ user.username }}</span>
@@ -71,12 +71,12 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-6">
-                    <h5>RentAnalyzer Pro</h5>
+                    <h5>RentAnalyzer</h5>
                     <p>Аналитический сервис для оценки стоимости аренды жилья</p>
                 </div>
                 <div class="col-md-6 text-end">
                     <p>&copy; {% now "Y" %} Все права защищены</p>
-                    <p>Сделано с ❤️ для проекта по Django</p>
+                    <p>Сделано для проекта по Django</p>
                 </div>
             </div>
         </div>

@@ -44,7 +44,7 @@ class ApartmentAdmin(admin.ModelAdmin):
 @admin.register(MarketOffer)
 class MarketOfferAdmin(admin.ModelAdmin):
     list_display = (
-        'address', 'city', 'area', 'rooms',
+        'address', 'city', 'area', 'rooms', 'floor',
         'price', 'price_per_sqm_display', 'source', 'is_active', 'parsed_date'
     )
     list_filter = ('city', 'source', 'is_active', 'rooms')

@@ -3,14 +3,114 @@
 {% block title %}Города{% endblock %}
 
 {% block content %}
-<div class="card">
-    <div class="card-header">
-        <h4 class="mb-0"><i class="fas fa-city"></i> Города в базе данных</h4>
-    </div>
-    <div class="card-body text-center py-5">
-        <i class="fas fa-database fa-4x text-info mb-4"></i>
-        <h3>Список городов в разработке</h3>
-        <p class="lead">База данных городов будет заполнена в ближайшее время</p>
+<div class="row">
+    <div class="col-lg-10 mx-auto">
+        <h1 class="mb-4"><i class="fas fa-city"></i> Города в базе данных</h1>
+
+        {% if cities %}
+            <!-- Карточки городов -->
+            <div class="row">
+                {% for city in cities %}
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ city.name }}</h5>
+                            <p class="card-text">
+                                <small class="text-muted">
+                                    <i class="fas fa-users"></i> Население:
+                                    {% if city.population %}
+                                        {{ city.population|floatformat:0 }} чел.
+                                    {% else %}
+                                        не указано
+                                    {% endif %}
+                                </small>
+                            </p>
+                            <p class="card-text">
+                                <strong>Средняя цена за м²:</strong><br>
+                                <span class="display-6 text-primary">{{ city.avg_price_per_sqm }} руб.</span>
+                            </p>
+                            {% if city.description %}
+                                <p class="card-text">{{ city.description|truncatechars:100 }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="card-footer">
+                            <small class="text-muted">
+                                <i class="fas fa-home"></i> Квартир: {{ city.apartments.count }}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Статистика -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Статистика по городам</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <h6>Количество городов</h6>
+                            <h3 class="text-primary">{{ total_cities }}</h3>
+                        </div>
+                        <div class="col-md-3">
+                            <h6>Средняя цена за м²</h6>
+                            <h3 class="text-success">{{ avg_price_all|floatformat:2 }} руб.</h3>
+                        </div>
+                        <div class="col-md-3">
+                            <h6>Самая высокая цена</h6>
+                            <h3 class="text-danger">{{ max_price|floatformat:2 }} руб.</h3>
+                        </div>
+                        <div class="col-md-3">
+                            <h6>Самая низкая цена</h6>
+                            <h3 class="text-info">{{ min_price|floatformat:2 }} руб.</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Пагинация -->
+            {% if is_paginated %}
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Назад</a>
+                    </li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                    <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                    </li>
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">Вперед</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-database fa-3x text-muted mb-3"></i>
+                <h3>Города не найдены</h3>
+                <p class="lead">База данных городов пока пуста</p>
+                <p>Добавьте города через админ-панель или загрузите тестовые данные</p>
+                <div class="mt-3">
+                    <a href="{% url 'admin:index' %}" class="btn btn-primary me-2">
+                        <i class="fas fa-cog"></i> Перейти в админку
+                    </a>
+                    <a href="{% url 'analyzer:market_offers' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-list-alt"></i> Смотреть предложения
+                    </a>
+                </div>
+            </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}
