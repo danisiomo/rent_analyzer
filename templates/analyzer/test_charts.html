@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block title %}Тест графиков{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Тест отображения графиков</h1>
+    
+    {% if chart1 %}
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5>Тестовый график 1</h5>
+        </div>
+        <div class="card-body text-center">
+            <img src="data:image/png;base64,{{ chart1 }}" 
+                 class="img-fluid rounded" alt="Тест 1">
+            <p class="mt-2">Длина base64: {{ chart1|length }} символов</p>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if chart2 %}
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5>Тестовый график 2</h5>
+        </div>
+        <div class="card-body text-center">
+            <img src="data:image/png;base64,{{ chart2 }}" 
+                 class="img-fluid rounded" alt="Тест 2">
+            <p class="mt-2">Длина base64: {{ chart2|length }} символов</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

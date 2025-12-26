@@ -49,41 +49,53 @@ class ApartmentAnalyzer:
     ) -> List[MarketOffer]:
         """
         Поиск похожих рыночных предложений
-
-        Args:
-            area_tolerance: Допустимое отклонение по площади (%)
-            price_tolerance: Допустимое отклонение по цене (%)
-            include_same_floor: Учитывать только тот же этаж
-            max_results: Максимальное количество результатов
-
-        Returns:
-            Список похожих рыночных предложений
         """
+        import logging
+        logger = logging.getLogger(__name__)
+
         # Преобразуем Decimal в float для расчетов
         apartment_area = float(self.apartment.area)
         desired_price = float(self.apartment.desired_price) if self.apartment.desired_price else None
 
+        logger.info(f"Поиск похожих предложений для квартиры:")
+        logger.info(f"  Город: {self.apartment.city.name}")
+        logger.info(f"  Комнат: {self.apartment.rooms}")
+        logger.info(f"  Площадь: {apartment_area} м²")
+        logger.info(f"  Желаемая цена: {desired_price} руб.")
+
         # Базовые фильтры
         filters = Q(city=self.city) & Q(is_active=True) & Q(rooms=self.apartment.rooms)
+
+        logger.info(
+            f"Базовый фильтр (город={self.city.name}, комнаты={self.apartment.rooms}): {MarketOffer.objects.filter(filters).count()} предложений")
 
         # Фильтр по площади (с допуском)
         area_min = apartment_area * (1 - area_tolerance / 100)
         area_max = apartment_area * (1 + area_tolerance / 100)
         filters &= Q(area__gte=area_min) & Q(area__lte=area_max)
 
+        logger.info(
+            f"После фильтра по площади ({area_min:.1f}-{area_max:.1f} м²): {MarketOffer.objects.filter(filters).count()} предложений")
+
         # Фильтр по цене (с допуском)
         if desired_price:
             price_min = desired_price * (1 - price_tolerance / 100)
             price_max = desired_price * (1 + price_tolerance / 100)
             filters &= Q(price__gte=price_min) & Q(price__lte=price_max)
+            logger.info(
+                f"После фильтра по цене ({price_min:,.0f}-{price_max:,.0f} руб.): {MarketOffer.objects.filter(filters).count()} предложений")
 
         # Фильтр по этажу (опционально)
         if include_same_floor and self.apartment.floor:
             filters &= Q(floor=self.apartment.floor)
+            logger.info(
+                f"После фильтра по этажу ({self.apartment.floor}): {MarketOffer.objects.filter(filters).count()} предложений")
 
         # Получаем предложения
         similar_offers = MarketOffer.objects.filter(filters).order_by('price')[:max_results]
         self.similar_offers = list(similar_offers)
+
+        logger.info(f"Итоговое количество похожих предложений: {len(self.similar_offers)}")
 
         return self.similar_offers
 

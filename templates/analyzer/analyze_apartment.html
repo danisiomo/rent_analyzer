@@ -50,6 +50,7 @@
                                     {{ form.price_tolerance|as_crispy_field }}
                                 </div>
                                 <div class="col-md-6">
+                                    {{ form.max_distance|as_crispy_field }}
                                     {{ form.min_similar_offers|as_crispy_field }}
                                     <div class="mt-4">
                                         {{ form.include_same_floor|as_crispy_field }}
@@ -76,7 +77,16 @@
                         </form>
                     </div>
                 </div>
-                
+                <!-- Добавить после формы -->
+                <div class="alert alert-info mt-3">
+                    <h6><i class="fas fa-lightbulb"></i> Советы по настройке фильтров:</h6>
+                    <ul class="mb-0">
+                        <li><strong>Если мало результатов</strong> - увеличьте допуски по площади и цене</li>
+                        <li><strong>Отключите фильтр по этажу</strong> - это значительно расширит поиск</li>
+                        <li><strong>Для первого анализа</strong> используйте: площадь ±30%, цена ±50%</li>
+                        <li><strong>Минимум 3 предложения</strong> нужны для построения графиков</li>
+                    </ul>
+                </div>
                 <!-- Что будет анализироваться -->
                 <div class="card mt-4">
                     <div class="card-header">

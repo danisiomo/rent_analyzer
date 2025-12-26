@@ -104,38 +104,57 @@ class ApartmentForm(forms.ModelForm):
 class AnalysisFilterForm(forms.Form):
     """Форма для фильтрации похожих предложений"""
 
-    # Допустимые отклонения
     AREA_TOLERANCE_CHOICES = [
-        (5, '±5%'),
         (10, '±10%'),
-        (15, '±15%'),
         (20, '±20%'),
+        (30, '±30%'),
+        (40, '±40%'),
+        (50, '±50%'),
     ]
 
     PRICE_TOLERANCE_CHOICES = [
-        (10, '±10%'),
-        (15, '±15%'),
         (20, '±20%'),
-        (25, '±25%'),
+        (30, '±30%'),
+        (40, '±40%'),
+        (50, '±50%'),
+        (100, '±100%'),
+    ]
+
+    # НОВЫЙ ПАРАМЕТР:
+    MAX_DISTANCE_CHOICES = [
+        (1, '1 км (очень близко)'),
+        (3, '3 км (рядом)'),
+        (5, '5 км (недалеко)'),
+        (10, '10 км (в пределах района)'),
+        (20, '20 км (в пределах города)'),
+        (50, '50 км (без ограничений по расстоянию)'),
     ]
 
     area_tolerance = forms.ChoiceField(
         choices=AREA_TOLERANCE_CHOICES,
-        initial=10,
+        initial=20,
         label='Допустимое отклонение по площади',
         widget=forms.Select(attrs={'class': 'form-select'})
     )
 
     price_tolerance = forms.ChoiceField(
         choices=PRICE_TOLERANCE_CHOICES,
-        initial=15,
+        initial=30,
         label='Допустимое отклонение по цене',
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+
+    # НОВОЕ ПОЛЕ:
+    max_distance = forms.ChoiceField(
+        choices=MAX_DISTANCE_CHOICES,
+        initial=10,
+        label='Максимальное расстояние от вашей квартиры',
         widget=forms.Select(attrs={'class': 'form-select'})
     )
 
     include_same_floor = forms.BooleanField(
         required=False,
-        initial=True,
+        initial=False,
         label='Учитывать только тот же этаж',
         widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
     )
@@ -143,7 +162,7 @@ class AnalysisFilterForm(forms.Form):
     min_similar_offers = forms.IntegerField(
         min_value=1,
         max_value=50,
-        initial=5,
+        initial=3,
         label='Минимальное количество похожих предложений',
         widget=forms.NumberInput(attrs={'class': 'form-control'})
     )

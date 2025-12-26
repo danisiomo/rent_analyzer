@@ -15,7 +15,7 @@ urlpatterns = [
     path('apartment/<int:apartment_id>/analyze/', views.analyze_apartment, name='analyze_apartment'),
     path('apartment/<int:apartment_id>/results/', views.analysis_results, name='analysis_results'),
     path('apartment/<int:apartment_id>/save-report/', views.save_analysis_report, name='save_analysis_report'),
-
+    path('test-charts/', views.test_charts, name='test_charts'),
     # Список городов
     path('cities/', views.CityListView.as_view(), name='city_list'),
 

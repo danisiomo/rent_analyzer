@@ -1,0 +1,41 @@
+[
+  {
+    "model": "analyzer.city",
+    "pk": 1,
+    "fields": {
+      "name": "Москва",
+      "slug": "moskva",
+      "latitude": "55.755826",
+      "longitude": "37.617300",
+      "avg_price_per_sqm": "2500.00",
+      "population": 13000000,
+      "description": "Столица России"
+    }
+  },
+  {
+    "model": "analyzer.city",
+    "pk": 2,
+    "fields": {
+      "name": "Санкт-Петербург",
+      "slug": "sankt-peterburg",
+      "latitude": "59.934280",
+      "longitude": "30.335099",
+      "avg_price_per_sqm": "1800.00",
+      "population": 5600000,
+      "description": "Северная столица России"
+    }
+  },
+  {
+    "model": "analyzer.city",
+    "pk": 3,
+    "fields": {
+      "name": "Екатеринбург",
+      "slug": "ekaterinburg",
+      "latitude": "56.838011",
+      "longitude": "60.597465",
+      "avg_price_per_sqm": "1000.00",
+      "population": 1500000,
+      "description": "Столица Урала"
+    }
+  }
+]
