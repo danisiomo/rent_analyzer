@@ -83,7 +83,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Рекомендация -->
         <div class="card mb-4 border-{{ results.recommendation_type }}">
             <div class="card-header bg-{{ results.recommendation_type }} text-white">
@@ -190,15 +190,19 @@
                         <tbody>
                             {% for offer in similar_offers %}
                             <tr>
-                                <td>{{ offer.address|truncatechars:30 }}</td>
+                                <td>{{ offer.address }}</td>
                                 <td>{{ offer.area }} м²</td>
-                                <td>{{ offer.floor }}</td>
-                                <td><strong>{{ offer.price }} руб.</strong></td>
-                                <td>{{ offer.price_per_sqm|floatformat:2 }} руб.</td>
+                                <td>{{ offer.rooms }}-к</td>
+                                <td>{{ offer.price }} руб.</td>
+                                <td>{{ offer.price_per_sqm }} руб./м²</td>
                                 <td>
-                                    <span class="badge bg-info">{{ offer.get_source_display }}</span>
+                                    {% if offer.distance_km %}
+                                        {{ offer.distance_km|floatformat:1 }} км
+                                    {% else %}
+                                        Не указано
+                                    {% endif %}
                                 </td>
-                                <td>{{ offer.parsed_date|date:"d.m.Y" }}</td>
+                                <td>{{ offer.get_source_display }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>

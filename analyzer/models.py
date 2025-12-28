@@ -1,10 +1,10 @@
-import logger
+import logging
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils.text import slugify
 from django.urls import reverse
 import uuid
-
+logger = logging.getLogger(__name__)
 
 class City(models.Model):
     """Модель для хранения городов"""
@@ -15,7 +15,7 @@ class City(models.Model):
     )
     slug = models.SlugField(
         max_length=100,
-        unique=True,
+        unique=False,
         verbose_name='URL-идентификатор',
         blank=True
     )
@@ -177,41 +177,33 @@ class Apartment(models.Model):
     )
 
     def save(self, *args, **kwargs):
-        """Автоматическое геокодирование при сохранении"""
-        from utils.geocoder import geocoder
+        """Автоматическое геокодирование с реалистичным геокодером"""
+        from utils.geocoder_realistic import geocoder  # Новый геокодер
 
-        # Определяем, нужно ли геокодировать
         needs_geocoding = (
                 self.address and
                 (not self.latitude or not self.longitude) and
-                self.city  # Убедимся, что город указан
+                self.city
         )
 
         if needs_geocoding:
             try:
-                logger.info(f"Геокодирование квартиры {self.id}: {self.address}, {self.city.name}")
+                logger.info(f"Геокодирование: {self.address}")
 
-                # Пробуем геокодировать
                 result = geocoder.geocode(self.address, self.city.name)
 
                 if result:
                     self.latitude = result['lat']
                     self.longitude = result['lon']
-
-                    # Если это приблизительные координаты, отмечаем
-                    if result.get('is_approximate'):
-                        logger.warning(f"Использованы приблизительные координаты для {self.address}")
-
-                    logger.info(f"Координаты установлены: {self.latitude}, {self.longitude}")
+                    logger.info(f"Координаты установлены: {self.latitude:.6f}, {self.longitude:.6f}")
                 else:
-                    logger.warning(f"Не удалось геокодировать адрес: {self.address}")
-                    # Устанавливаем координаты города как запасной вариант
-                    self.latitude = self.city.latitude if hasattr(self.city, 'latitude') else None
-                    self.longitude = self.city.longitude if hasattr(self.city, 'longitude') else None
+                    logger.warning(f"Не удалось геокодировать, используем координаты города")
+                    if self.city.latitude and self.city.longitude:
+                        self.latitude = self.city.latitude
+                        self.longitude = self.city.longitude
 
             except Exception as e:
-                logger.error(f"Ошибка геокодирования для квартиры {self.id}: {e}")
-                # Не прерываем сохранение, просто логируем ошибку
+                logger.error(f"Ошибка геокодирования: {str(e)}")
 
         super().save(*args, **kwargs)
 
@@ -306,18 +298,33 @@ class MarketOffer(models.Model):
     )
 
     def save(self, *args, **kwargs):
-        """Автоматическое геокодирование при сохранении MarketOffer"""
-        from utils.geocoder import geocoder
+        """Автоматическое геокодирование с реалистичным геокодером"""
+        from utils.geocoder_realistic import geocoder  # Новый геокодер
 
-        # Геокодируем если есть адрес и нет координат
-        if self.address and (not self.latitude or not self.longitude) and self.city:
+        needs_geocoding = (
+                self.address and
+                (not self.latitude or not self.longitude) and
+                self.city
+        )
+
+        if needs_geocoding:
             try:
+                logger.info(f"Геокодирование: {self.address}")
+
                 result = geocoder.geocode(self.address, self.city.name)
+
                 if result:
                     self.latitude = result['lat']
                     self.longitude = result['lon']
+                    logger.info(f"Координаты установлены: {self.latitude:.6f}, {self.longitude:.6f}")
+                else:
+                    logger.warning(f"Не удалось геокодировать, используем координаты города")
+                    if self.city.latitude and self.city.longitude:
+                        self.latitude = self.city.latitude
+                        self.longitude = self.city.longitude
+
             except Exception as e:
-                print(f"Geocoding error for market offer {self.id}: {e}")
+                logger.error(f"Ошибка геокодирования: {str(e)}")
 
         super().save(*args, **kwargs)
 

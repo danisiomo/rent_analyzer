@@ -97,18 +97,22 @@ def analyze_apartment(request, apartment_id):
     if request.method == 'POST':
         filter_form = AnalysisFilterForm(request.POST)
         if filter_form.is_valid():
-            # Получаем параметры анализа и преобразуем в float
+            # Получаем параметры анализа
             area_tolerance = float(filter_form.cleaned_data['area_tolerance'])
             price_tolerance = float(filter_form.cleaned_data['price_tolerance'])
             include_same_floor = filter_form.cleaned_data['include_same_floor']
             min_similar_offers = int(filter_form.cleaned_data['min_similar_offers'])
 
-            # Запускаем анализ
+            # НОВЫЙ ПАРАМЕТР: максимальное расстояние
+            max_distance_km = float(filter_form.cleaned_data['max_distance'])
+
+            # Запускаем анализ с учетом расстояния
             analyzer = ApartmentAnalyzer(apartment)
             results = analyzer.analyze(
                 area_tolerance=area_tolerance,
                 price_tolerance=price_tolerance,
                 include_same_floor=include_same_floor,
+                max_distance_km=max_distance_km,  # Передаем параметр расстояния
                 max_results=50
             )
 
