@@ -1,0 +1,384 @@
+<!-- templates/analyzer/analysis_detail.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Детали анализа - {{ report.apartment.address }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Хлебные крошки -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'analyzer:dashboard' %}">Личный кабинет</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'analyzer:dashboard' %}#reports">Мои отчеты</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Детали анализа</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Заголовок -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i class="fas fa-chart-line text-primary me-2"></i>
+                    Детали анализа
+                </h1>
+                <div>
+                    <a href="{% url 'analyzer:analyze_apartment' report.apartment.id %}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-redo me-1"></i>Повторить анализ
+                    </a>
+                    <a href="{% url 'analyzer:dashboard' %}" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-arrow-left me-1"></i>Назад
+                    </a>
+                </div>
+            </div>
+
+            <!-- Информация о квартире -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-home me-2"></i>Анализируемая квартира
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h4 class="card-title">{{ report.apartment.address }}</h4>
+                            <p class="text-muted mb-2">
+                                <i class="fas fa-city me-1"></i>
+                                Город: <strong>{{ report.apartment.city.name }}</strong>
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <span class="badge bg-info fs-6">
+                                {{ report.apartment.rooms }}-к квартира
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="fas fa-expand-arrows-alt text-primary me-2"></i>
+                                <div>
+                                    <small class="text-muted d-block">Площадь</small>
+                                    <strong>{{ report.apartment.area }} м²</strong>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="fas fa-building text-primary me-2"></i>
+                                <div>
+                                    <small class="text-muted d-block">Этаж</small>
+                                    <strong>{{ report.apartment.floor }}/{{ report.apartment.total_floors }}</strong>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="fas fa-ruble-sign text-primary me-2"></i>
+                                <div>
+                                    <small class="text-muted d-block">Желаемая цена</small>
+                                    <strong>{{ report.apartment.desired_price|floatformat:0 }} руб.</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Основные результаты -->
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>Основные результаты анализа
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-4 mb-3">
+                            <div class="p-3 border rounded bg-light">
+                                <h6 class="text-muted mb-2">Справедливая цена</h6>
+                                <h3 class="text-success">{{ report.fair_price|floatformat:0 }} руб.</h3>
+                                <small>рекомендуемая</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="p-3 border rounded bg-light">
+                                <h6 class="text-muted mb-2">Разница</h6>
+                                <h3 class="{% if report.price_difference > 0 %}text-success{% else %}text-danger{% endif %}">
+                                    {{ report.price_difference|floatformat:1 }}%
+                                </h3>
+                                <small>
+                                    {% if report.price_difference > 0 %}
+                                        <span class="text-success">ваша цена ниже</span>
+                                    {% else %}
+                                        <span class="text-danger">ваша цена выше</span>
+                                    {% endif %}
+                                </small>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="p-3 border rounded bg-light">
+                                <h6 class="text-muted mb-2">Рыночный диапазон</h6>
+                                <h5>{{ report.min_price|floatformat:0 }} - {{ report.max_price|floatformat:0 }} руб.</h5>
+                                <small>мин - макс</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Рекомендация -->
+                    <div class="alert alert-{{ report.get_recommendation_type|lower }} mt-3">
+                        <div class="d-flex">
+                            <div class="flex-shrink-0">
+                                <i class="fas
+                                    {% if report.get_recommendation_type == 'Цена занижена' %}fa-arrow-up
+                                    {% elif report.get_recommendation_type == 'Цена завышена' %}fa-arrow-down
+                                    {% else %}fa-check-circle
+                                    {% endif %}
+                                me-2 fs-4"></i>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h5 class="alert-heading">{{ report.get_recommendation_type }}!</h5>
+                                {{ report.recommendation|linebreaks }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ГРАФИК -->
+            {% if report.chart_image_base64 %}
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>График распределения цен
+                    </h5>
+                </div>
+                <div class="card-body text-center">
+                    <img src="data:image/png;base64,{{ report.chart_image_base64 }}"
+                         class="img-fluid rounded"
+                         alt="График анализа цен"
+                         style="max-height: 400px;">
+                    <p class="card-text text-muted mt-2">
+                        <small>Распределение цен на похожие квартиры на рынке</small>
+                    </p>
+                </div>
+            </div>
+            {% elif report.chart_image %}
+            <!-- Если график сохранен как файл (старый способ) -->
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>График распределения цен
+                    </h5>
+                </div>
+                <div class="card-body text-center">
+                    <img src="{{ report.chart_image.url }}"
+                         class="img-fluid rounded"
+                         alt="График анализа цен"
+                         style="max-height: 400px;">
+                </div>
+            </div>
+            {% else %}
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                График не был сохранен при создании отчета.
+                <br>
+                <small>Запустите анализ снова и нажмите "Сохранить отчет" для сохранения графика.</small>
+            </div>
+            {% endif %}
+            <!-- Статистика -->
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-pie me-2"></i>Статистика по похожим предложениям
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <div class="text-center p-3 border rounded">
+                                <h6 class="text-muted mb-2">Средняя цена</h6>
+                                <h4>{{ report.avg_price|floatformat:0 }} руб.</h4>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="text-center p-3 border rounded">
+                                <h6 class="text-muted mb-2">Медианная цена</h6>
+                                <h4>{{ report.median_price|floatformat:0 }} руб.</h4>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="text-center p-3 border rounded">
+                                <h6 class="text-muted mb-2">Минимальная</h6>
+                                <h4>{{ report.min_price|floatformat:0 }} руб.</h4>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="text-center p-3 border rounded">
+                                <h6 class="text-muted mb-2">Максимальная</h6>
+                                <h4>{{ report.max_price|floatformat:0 }} руб.</h4>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="text-center p-3 border rounded">
+                                <h6 class="text-muted mb-2">Похожих предложений</h6>
+                                <h3>{{ report.similar_offers_count }}</h3>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="text-center p-3 border rounded">
+                                <h6 class="text-muted mb-2">Средняя цена за м²</h6>
+                                <h4>{{ report.avg_price_per_sqm|floatformat:0 }} руб./м²</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Боковая панель -->
+        <div class="col-md-4">
+            <!-- Информация о дате -->
+            <div class="card mb-4">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-calendar-alt me-2"></i>Информация об анализе
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <p><strong>Дата создания отчета:</strong></p>
+                        <p class="fs-5">{{ report.created_at|date:"d.m.Y H:i" }}</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <p><strong>Анализ выполнен для:</strong></p>
+                        <p>{{ report.apartment.address }}</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <p><strong>Идентификатор отчета:</strong></p>
+                        <code class="small">#{{ report.id }}</code>
+                    </div>
+
+                    <hr>
+
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'analyzer:apartment_detail' report.apartment.id %}" class="btn btn-outline-primary">
+                            <i class="fas fa-home me-1"></i>Подробнее о квартире
+                        </a>
+
+                        {% if report.chart_image %}
+                        <a href="{{ report.chart_image.url }}" target="_blank" class="btn btn-outline-info">
+                            <i class="fas fa-download me-1"></i>Скачать график
+                        </a>
+                        {% endif %}
+
+                        <button type="button" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#shareModal">
+                            <i class="fas fa-share-alt me-1"></i>Поделиться отчетом
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Действия -->
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">
+                        <i class="fas fa-cogs me-2"></i>Действия
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'analyzer:delete_report' report.id %}"
+                           class="btn btn-outline-danger"
+                           onclick="return confirm('Вы уверены, что хотите удалить этот отчет?');">
+                            <i class="fas fa-trash me-1"></i>Удалить отчет
+                        </a>
+
+                        <a href="{% url 'analyzer:delete_apartment' report.apartment.id %}"
+                           class="btn btn-outline-danger"
+                           onclick="return confirm('Вы уверены, что хотите удалить эту квартиру? Все связанные отчеты также будут удалены.');">
+                            <i class="fas fa-home me-1"></i>Удалить квартиру
+                        </a>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Быстрый анализ другой квартиры -->
+            <div class="card mt-4">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">
+                        <i class="fas fa-bolt me-2"></i>Быстрый анализ
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="small text-muted">Проанализировать другую квартиру:</p>
+                    <a href="{% url 'analyzer:add_apartment' %}" class="btn btn-primary w-100">
+                        <i class="fas fa-plus me-1"></i>Добавить новую квартиру
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для шаринга -->
+    <div class="modal fade" id="shareModal" tabindex="-1" aria-labelledby="shareModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="shareModalLabel">Поделиться отчетом</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Ссылка на этот отчет:</p>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control"
+                               value="{{ request.build_absolute_uri }}"
+                               id="shareUrl" readonly>
+                        <button class="btn btn-outline-secondary" type="button" onclick="copyShareUrl()">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                    <div class="alert alert-info small">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Эта ссылка доступна только вам и требует авторизации.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function copyShareUrl() {
+    const copyText = document.getElementById("shareUrl");
+    copyText.select();
+    copyText.setSelectionRange(0, 99999);
+    document.execCommand("copy");
+
+    // Показываем уведомление
+    const button = event.target.closest('button');
+    const originalHTML = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-check"></i> Скопировано!';
+    button.classList.remove('btn-outline-secondary');
+    button.classList.add('btn-success');
+
+    setTimeout(() => {
+        button.innerHTML = originalHTML;
+        button.classList.remove('btn-success');
+        button.classList.add('btn-outline-secondary');
+    }, 2000);
+}
+</script>
+{% endblock %}

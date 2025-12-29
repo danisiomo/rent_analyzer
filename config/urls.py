@@ -10,7 +10,7 @@ urlpatterns = [
     path('users/', include('users.urls')),
     path('analyzer/', include('analyzer.urls')),
     #path('api/', include('api.urls')),  # если создавали api app
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

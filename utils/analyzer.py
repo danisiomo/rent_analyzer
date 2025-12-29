@@ -42,14 +42,14 @@ class ApartmentAnalyzer:
 
     def find_similar_offers(
             self,
-            area_tolerance: float = 10.0,
-            price_tolerance: float = 15.0,
-            include_same_floor: bool = True,
-            max_distance_km: float = 10.0,  # НОВЫЙ ПАРАМЕТР: максимальное расстояние в км
+            area_tolerance: float = 20.0,  # Проценты
+            price_tolerance: float = 30.0,  # Проценты
+            include_same_floor: bool = False,  # По умолчанию не включаем тот же этаж
+            max_distance_km: float = 10.0,  # Максимальное расстояние в км
             max_results: int = 50
     ) -> List[MarketOffer]:
         """
-        Поиск похожих рыночных предложений с учетом расстояния
+        Поиск похожих рыночных предложений с учетом всех фильтров
         """
         import logging
         logger = logging.getLogger(__name__)
@@ -58,7 +58,7 @@ class ApartmentAnalyzer:
         apartment_area = float(self.apartment.area)
         desired_price = float(self.apartment.desired_price) if self.apartment.desired_price else None
 
-        # Получаем координаты квартиры
+        # Координаты квартиры
         apartment_lat = float(self.apartment.latitude) if self.apartment.latitude else None
         apartment_lon = float(self.apartment.longitude) if self.apartment.longitude else None
 
@@ -66,51 +66,56 @@ class ApartmentAnalyzer:
         logger.info(f"  Город: {self.apartment.city.name}")
         logger.info(f"  Комнат: {self.apartment.rooms}")
         logger.info(f"  Площадь: {apartment_area} м²")
-        logger.info(f"  Координаты: {apartment_lat}, {apartment_lon}")
+        logger.info(f"  Допуск по площади: ±{area_tolerance}%")
+        logger.info(f"  Допуск по цене: ±{price_tolerance}%")
         logger.info(f"  Макс. расстояние: {max_distance_km} км")
 
-        # Базовые фильтры
-        filters = Q(city=self.city) & Q(is_active=True) & Q(rooms=self.apartment.rooms)
+        # Базовые фильтры: город, активные, примерно столько же комнат
+        # Расширяем фильтр по комнатам: ищем +/- 1 комнату
+        rooms_filter = Q(rooms=self.apartment.rooms)
+        if self.apartment.rooms > 1:
+            rooms_filter = rooms_filter | Q(rooms=self.apartment.rooms - 1)
+        rooms_filter = rooms_filter | Q(rooms=self.apartment.rooms + 1)
 
-        logger.info(
-            f"Базовый фильтр (город={self.city.name}, комнаты={self.apartment.rooms}): "
-            f"{MarketOffer.objects.filter(filters).count()} предложений")
+        filters = Q(city=self.apartment.city) & Q(is_active=True) & rooms_filter
 
-        # Фильтр по площади (с допуском)
-        area_min = apartment_area * (1 - area_tolerance / 100)
-        area_max = apartment_area * (1 + area_tolerance / 100)
+        logger.info(f"Базовый фильтр: {MarketOffer.objects.filter(filters).count()} предложений")
+
+        # Фильтр по площади (в абсолютных значениях, а не процентах)
+        # area_tolerance - это проценты, преобразуем в абсолютное значение
+        area_tolerance_value = apartment_area * (area_tolerance / 100.0)
+        area_min = apartment_area - area_tolerance_value
+        area_max = apartment_area + area_tolerance_value
+
         filters &= Q(area__gte=area_min) & Q(area__lte=area_max)
-
         logger.info(
-            f"После фильтра по площади ({area_min:.1f}-{area_max:.1f} м²): "
-            f"{MarketOffer.objects.filter(filters).count()} предложений")
+            f"После фильтра по площади ({area_min:.1f}-{area_max:.1f} м²): {MarketOffer.objects.filter(filters).count()}")
 
-        # Фильтр по цене (с допуском)
+        # Фильтр по цене (если указана желаемая цена)
         if desired_price:
-            price_min = desired_price * (1 - price_tolerance / 100)
-            price_max = desired_price * (1 + price_tolerance / 100)
+            price_tolerance_value = desired_price * (price_tolerance / 100.0)
+            price_min = desired_price - price_tolerance_value
+            price_max = desired_price + price_tolerance_value
+
             filters &= Q(price__gte=price_min) & Q(price__lte=price_max)
             logger.info(
-                f"После фильтра по цене ({price_min:,.0f}-{price_max:,.0f} руб.): "
-                f"{MarketOffer.objects.filter(filters).count()} предложений")
+                f"После фильтра по цене ({price_min:,.0f}-{price_max:,.0f} руб.): {MarketOffer.objects.filter(filters).count()}")
 
         # Фильтр по этажу (опционально)
         if include_same_floor and self.apartment.floor:
             filters &= Q(floor=self.apartment.floor)
             logger.info(
-                f"После фильтра по этажу ({self.apartment.floor}): "
-                f"{MarketOffer.objects.filter(filters).count()} предложений")
+                f"После фильтра по этажу ({self.apartment.floor}): {MarketOffer.objects.filter(filters).count()}")
 
         # Получаем ВСЕ предложения по фильтрам
-        all_offers = MarketOffer.objects.filter(filters).order_by('price')
+        all_offers = MarketOffer.objects.filter(filters)
+        logger.info(f"Всего после базовых фильтров: {all_offers.count()}")
 
-        logger.info(f"Предложений после базовых фильтров: {all_offers.count()}")
-
-        # Фильтрация по расстоянию (если есть координаты квартиры)
+        # Фильтрация по расстоянию (если есть координаты квартиры и указано ограничение)
         filtered_offers = []
 
         if apartment_lat and apartment_lon and max_distance_km > 0:
-            from utils.geocoder import calculate_distance
+            from utils.distance_calculator import calculate_distance
 
             for offer in all_offers:
                 # Проверяем, есть ли у предложения координаты
@@ -123,7 +128,7 @@ class ApartmentAnalyzer:
                         )
 
                         # Сохраняем расстояние как дополнительное поле
-                        offer.distance_km = distance
+                        offer.distance_km = round(distance, 1)
 
                         # Проверяем, попадает ли в радиус
                         if distance <= max_distance_km:
@@ -132,29 +137,35 @@ class ApartmentAnalyzer:
                             logger.debug(f"Предложение {offer.id} слишком далеко: {distance:.1f} км")
                     except Exception as e:
                         logger.error(f"Ошибка расчета расстояния для предложения {offer.id}: {e}")
-                        # Если ошибка, все равно добавляем (без расстояния)
+                        # Если ошибка, все равно добавляем
                         filtered_offers.append(offer)
                 else:
-                    # Если у предложения нет координат, все равно добавляем
-                    logger.warning(f"У предложения {offer.id} нет координат")
+                    # Если у предложения нет координатов, добавляем с расстоянием "неизвестно"
+                    offer.distance_km = None
                     filtered_offers.append(offer)
+                    logger.debug(f"У предложения {offer.id} нет координатов")
         else:
             # Если нет координат квартиры или не указано ограничение по расстоянию
             filtered_offers = list(all_offers)
-            logger.info("Фильтрация по расстоянию отключена (нет координат или max_distance_km=0)")
+            logger.info("Фильтрация по расстоянию отключена")
 
-        # Сортируем по расстоянию (если оно есть)
+        # Сортируем по расстоянию (если оно есть), затем по цене
         try:
-            filtered_offers.sort(key=lambda x: getattr(x, 'distance_km', float('inf')))
+            filtered_offers.sort(key=lambda x: (
+                getattr(x, 'distance_km', float('inf')),  # Сначала по расстоянию
+                float(x.price)  # Затем по цене
+            ))
         except:
-            pass
+            # Если сортировка не удалась, сортируем просто по цене
+            filtered_offers.sort(key=lambda x: float(x.price))
 
         # Ограничиваем количество результатов
         self.similar_offers = filtered_offers[:max_results]
 
-        # Логируем статистику по расстоянию
+        # Логируем статистику
         if apartment_lat and apartment_lon:
-            distances = [getattr(o, 'distance_km', None) for o in self.similar_offers if hasattr(o, 'distance_km')]
+            distances = [getattr(o, 'distance_km', None) for o in self.similar_offers if
+                         hasattr(o, 'distance_km') and o.distance_km is not None]
             if distances:
                 avg_distance = sum(distances) / len(distances)
                 logger.info(f"Среднее расстояние похожих предложений: {avg_distance:.1f} км")

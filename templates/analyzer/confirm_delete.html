@@ -1,0 +1,66 @@
+<!-- templates/analyzer/confirm_delete.html -->
+{% extends 'base.html' %}
+
+{% block title %}Удаление {{ object_type }} - {{ object }}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Подтверждение удаления
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-trash-alt fa-4x text-danger mb-3"></i>
+                        <h5 class="card-title">Вы уверены, что хотите удалить {{ object_type }}?</h5>
+                    </div>
+
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h6>Детали:</h6>
+                            <p class="mb-1"><strong>Объект:</strong> {{ object }}</p>
+
+                            {% if object_type == 'квартиру' %}
+                            <p class="mb-1"><strong>Адрес:</strong> {{ object.address }}</p>
+                            <p class="mb-1"><strong>Город:</strong> {{ object.city.name }}</p>
+                            <p class="mb-0"><strong>Площадь:</strong> {{ object.area }} м²</p>
+
+                            <div class="alert alert-warning mt-3">
+                                <i class="fas fa-exclamation-circle me-2"></i>
+                                <strong>Внимание!</strong> При удалении квартиры все связанные отчеты анализа также будут удалены.
+                            </div>
+
+                            {% elif object_type == 'отчет анализа' %}
+                            <p class="mb-1"><strong>Квартира:</strong> {{ object.apartment.address }}</p>
+                            <p class="mb-1"><strong>Дата создания:</strong> {{ object.created_at|date:"d.m.Y H:i" }}</p>
+                            <p class="mb-0"><strong>Справедливая цена:</strong> {{ object.fair_price|floatformat:0 }} руб.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-danger btn-lg">
+                                <i class="fas fa-trash me-2"></i>Да, удалить
+                            </button>
+                            <a href="{% url cancel_url object.id %}" class="btn btn-outline-secondary btn-lg">
+                                <i class="fas fa-times me-2"></i>Отмена
+                            </a>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer text-muted small">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Это действие нельзя отменить. Все данные будут удалены безвозвратно.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

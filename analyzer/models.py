@@ -349,80 +349,40 @@ class MarketOffer(models.Model):
 
 
 class AnalysisReport(models.Model):
-    """Модель отчета анализа"""
+    apartment = models.OneToOneField(Apartment, on_delete=models.CASCADE, related_name='analysis_report')
+    fair_price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Справедливая цена')
+    price_difference = models.DecimalField(max_digits=5, decimal_places=2, verbose_name='Разница в процентах')
+    similar_offers_count = models.IntegerField(default=0, verbose_name='Количество похожих предложений')
 
-    apartment = models.OneToOneField(
-        Apartment,
-        on_delete=models.CASCADE,
-        verbose_name='Квартира',
-        related_name='analysis_report'
-    )
-    fair_price = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        verbose_name='Справедливая цена (руб./мес.)'
-    )
-    price_difference = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        verbose_name='Разница с желаемой ценой',
-        help_text='Отрицательное - цена завышена, положительное - занижена'
-    )
-    similar_offers_count = models.IntegerField(
-        verbose_name='Количество похожих предложений'
-    )
-    avg_price_per_sqm = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        verbose_name='Средняя цена за м²'
-    )
-    median_price = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        verbose_name='Медианная цена'
-    )
-    min_price = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        verbose_name='Минимальная цена'
-    )
-    max_price = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        verbose_name='Максимальная цена'
-    )
-    recommendation = models.TextField(
-        verbose_name='Рекомендация',
-        help_text='Текстовая рекомендация по ценообразованию'
-    )
-    chart_image = models.ImageField(
-        upload_to='analysis_charts/',
-        verbose_name='График анализа',
+    # Добавьте эти поля для статистики:
+    avg_price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Средняя цена', default=0)
+    median_price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Медианная цена', default=0)
+    min_price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Минимальная цена', default=0)
+    max_price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Максимальная цена', default=0)
+    avg_price_per_sqm = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Средняя цена за м²',
+                                            default=0)
+
+    recommendation = models.TextField(verbose_name='Рекомендация')
+    chart_image = models.ImageField(upload_to='analysis_charts/', null=True, blank=True, verbose_name='График')
+    created_at = models.DateTimeField(auto_now_add=True)
+    chart_image_base64 = models.TextField(
         blank=True,
-        null=True
+        null=True,
+        verbose_name='График в формате base64'
     )
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name='Дата создания отчета'
-    )
-
-    class Meta:
-        verbose_name = 'Отчет анализа'
-        verbose_name_plural = 'Отчеты анализа'
-        ordering = ['-created_at']
 
     def __str__(self):
-        return f"Отчет для {self.apartment} от {self.created_at.strftime('%d.%m.%Y')}"
-
-    def price_range(self):
-        """Возвращает диапазон цен в формате строки"""
-        return f"{self.min_price} - {self.max_price} руб."
+        return f"Отчет для {self.apartment.address}"
 
     def get_recommendation_type(self):
-        """Определяет тип рекомендации"""
-        if self.price_difference > 0:
-            return "Цена занижена"
-        elif self.price_difference < 0:
-            return "Цена завышена"
-        else:
+        """Определяет тип рекомендации для стилизации"""
+        if not hasattr(self, 'price_difference'):
+            return "Информация"
+
+        diff = float(self.price_difference)
+        if abs(diff) <= 5:
             return "Цена оптимальна"
+        elif diff > 0:
+            return "Цена занижена"
+        else:
+            return "Цена завышена"

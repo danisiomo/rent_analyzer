@@ -1,3 +1,4 @@
+import report
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView
@@ -9,7 +10,7 @@ from utils.analyzer import ApartmentAnalyzer
 from utils.geocoder import geocoder
 from utils.charts import chart_generator
 import logging
-
+import numpy as np
 
 
 try:
@@ -40,18 +41,43 @@ def home(request):
 
 @login_required
 def dashboard(request):
-    """Личный кабинет пользователя"""
+    """Личный кабинет пользователя с историей анализов"""
     # Квартиры текущего пользователя
     user_apartments = Apartment.objects.filter(user=request.user)
+
     # Отчеты анализа для квартир пользователя
-    reports = AnalysisReport.objects.filter(apartment__user=request.user)
+    reports = AnalysisReport.objects.filter(apartment__user=request.user).select_related('apartment').order_by(
+        '-created_at')
+
+    # Статистика
+    total_analyses = reports.count()
+    successful_analyses = reports.filter(similar_offers_count__gte=3).count()
+
+    # Последние анализы (5 штук)
+    recent_analyses = reports[:5]
 
     context = {
         'user_apartments': user_apartments,
         'reports': reports,
+        'total_analyses': total_analyses,
+        'successful_analyses': successful_analyses,
+        'recent_analyses': recent_analyses,
+        'title': 'Личный кабинет',
     }
     return render(request, 'analyzer/dashboard.html', context)
 
+
+@login_required
+def view_report_detail(request, report_id):
+    """Просмотр деталей конкретного отчета анализа"""
+    report = get_object_or_404(AnalysisReport, id=report_id, apartment__user=request.user)
+
+    context = {
+        'report': report,
+        'apartment': report.apartment,
+        'title': f'Отчет анализа от {report.created_at.strftime("%d.%m.%Y %H:%M")}',
+    }
+    return render(request, 'analyzer/analysis_detail.html', context)
 
 @login_required
 def add_apartment(request):
@@ -141,11 +167,19 @@ def analyze_apartment(request, apartment_id):
             if 'apartment' in serializable_results:
                 del serializable_results['apartment']
 
-            # Сохраняем результаты в сессии для отображения
+            # Добавьте сохранение фильтров и похожих предложений:
             request.session['analysis_results'] = {
                 'apartment_id': apartment.id,
                 'results': serializable_results,
                 'similar_offers_count': results['count'],
+                'filter_params': {
+                    'area_tolerance': area_tolerance,
+                    'price_tolerance': price_tolerance,
+                    'max_distance_km': max_distance_km,
+                    'include_same_floor': include_same_floor,
+                },
+                # Сохраняем ID похожих предложений
+                'similar_offer_ids': [offer.id for offer in results.get('similar_offers', [])][:50],
             }
 
             return redirect('analyzer:analysis_results', apartment_id=apartment.id)
@@ -208,6 +242,21 @@ def analysis_results(request, apartment_id):
 
     results = analysis_data['results']
 
+    # Получаем параметры фильтрации из сессии
+    filter_params = analysis_data.get('filter_params', {})
+    area_tolerance = float(filter_params.get('area_tolerance', 20))
+    price_tolerance = float(filter_params.get('price_tolerance', 30))
+    max_distance_km = float(filter_params.get('max_distance_km', 10))
+
+    # Получаем похожие предложения
+    analyzer = ApartmentAnalyzer(apartment)
+    similar_offers = analyzer.find_similar_offers(
+        area_tolerance=area_tolerance,
+        price_tolerance=price_tolerance,
+        max_distance_km=max_distance_km,
+        max_results=50
+    )
+
     # Форматируем числа для отображения
     formatted_results = {
         **results,
@@ -216,100 +265,191 @@ def analysis_results(request, apartment_id):
         'min_price': f"{results['min_price']:,.0f}".replace(',', ' '),
         'max_price': f"{results['max_price']:,.0f}".replace(',', ' '),
         'fair_price': f"{results['fair_price']:,.0f}".replace(',', ' '),
-        'price_difference': f"{results['price_difference']:.1f}",
-        'price_range': f"{results['min_price']:,.0f} - {results['max_price']:,.0f}",
-        'recommendation_type': results.get('recommendation_type', 'info'),
-        'avg_price_per_sqm': f"{results.get('avg_price_per_sqm', 0):,.0f}",
+        'price_difference': f"{results['price_difference']:+.1f}",
+        'price_range': f"{results['min_price']:,.0f} - {results['max_price']:,.0f}".replace(',', ' '),
+        'avg_price_per_sqm': f"{results.get('avg_price_per_sqm', 0):,.0f}".replace(',', ' '),
     }
 
-    # Получаем похожие предложения ЧЕРЕЗ АНАЛИЗАТОР
-    analyzer = ApartmentAnalyzer(apartment)
+    # Добавляем информацию о фильтрах
+    formatted_results['filter_info'] = {
+        'area_tolerance': area_tolerance,
+        'price_tolerance': price_tolerance,
+        'max_distance': max_distance_km,
+        'similar_count': len(similar_offers),
+    }
 
-    # Важно: используем те же параметры, что были в анализе
-    area_tolerance = float(analysis_data.get('area_tolerance', 20))
-    price_tolerance = float(analysis_data.get('price_tolerance', 30))
-    include_same_floor = analysis_data.get('include_same_floor', False)
-
-    similar_offers = analyzer.find_similar_offers(
-        area_tolerance=area_tolerance,
-        price_tolerance=price_tolerance,
-        include_same_floor=include_same_floor,
-        max_results=50
-    )
-
-    # Проверяем, что получили
-    logger.info(f"Найдено похожих предложений: {len(similar_offers)}")
-    if similar_offers:
-        logger.info(f"Пример первого предложения: {similar_offers[0].price} руб., {similar_offers[0].area} м²")
-
-    # Создаем графики (если доступны)
+    # Создаем графики
     charts = {}
 
     # Проверяем, что есть достаточно данных
     has_enough_data = len(similar_offers) >= 3
 
-    if CHARTS_AVAILABLE and chart_generator and has_enough_data:
+    if has_enough_data:
         try:
             logger.info(f"Создание графиков: {len(similar_offers)} предложений")
 
-            # Подготавливаем статистику для графиков
-            market_stats = {
-                'avg_price': float(results['avg_price']),
-                'median_price': float(results['median_price']),
-                'min_price': float(results['min_price']),
-                'max_price': float(results['max_price'])
-            }
+            # Рассчитываем статистику для графиков
+            import numpy as np
+            prices = [float(offer.price) for offer in similar_offers]
+            avg_price = np.mean(prices)
+            median_price = np.median(prices)
+            min_price = np.min(prices)
+            max_price = np.max(prices)
 
-            # Тестируем каждый график отдельно
-            test_prices = [float(offer.price) for offer in similar_offers[:5]]
-            test_areas = [float(offer.area) for offer in similar_offers[:5]]
-            logger.info(f"Тестовые данные: цены={test_prices}, площади={test_areas}")
+            logger.info(
+                f"Статистика: avg={avg_price:.0f}, median={median_price:.0f}, min={min_price:.0f}, max={max_price:.0f}")
 
-            # Пробуем создать простой график
+            # Создаем простой график ГАРАНТИРОВАННО
             import matplotlib
             matplotlib.use('Agg')
             import matplotlib.pyplot as plt
             import io
             import base64
 
-            # Тестовый график
-            plt.figure(figsize=(8, 6))
-            prices = [float(offer.price) for offer in similar_offers]
-            plt.hist(prices, bins=10, alpha=0.7)
-            plt.xlabel('Цена')
-            plt.ylabel('Количество')
-            plt.title('Тестовый график')
+            # ГРАФИК 1: Гистограмма распределения цен с отметками
+            plt.figure(figsize=(12, 7))
 
+            # Гистограмма
+            n_bins = min(10, len(prices))
+            counts, bins, patches = plt.hist(prices, bins=n_bins, alpha=0.7, color='skyblue', edgecolor='black',
+                                             label=f'{len(prices)} предложений')
+
+            # Цвета для столбцов гистограммы (градиент)
+            bin_centers = 0.5 * (bins[:-1] + bins[1:])
+            col = bin_centers - min(bin_centers)
+            col /= max(col)
+
+            for c, p in zip(col, patches):
+                plt.setp(p, 'facecolor', plt.cm.viridis(c))
+
+            # Добавляем вертикальные линии для статистики
+            plt.axvline(x=avg_price, color='red', linestyle='-', linewidth=2.5,
+                        label=f'Средняя цена: {avg_price:,.0f} руб.')
+            plt.axvline(x=median_price, color='orange', linestyle='--', linewidth=2.5,
+                        label=f'Медианная цена: {median_price:,.0f} руб.')
+
+            # Добавляем вертикальную линию для желаемой цены
+            if apartment.desired_price:
+                desired_price = float(apartment.desired_price)
+                plt.axvline(x=desired_price, color='green', linestyle=':', linewidth=3,
+                            label=f'Ваша цена: {desired_price:,.0f} руб.')
+
+            # Добавляем заливку между мин и макс
+            plt.axvspan(min_price, max_price, alpha=0.1, color='gray',
+                        label=f'Диапазон: {min_price:,.0f} - {max_price:,.0f} руб.')
+
+            # Настройки графика
+            plt.xlabel('Цена аренды (руб.)', fontsize=12, fontweight='bold')
+            plt.ylabel('Количество предложений', fontsize=12, fontweight='bold')
+            #plt.title(f'Распределение цен в {apartment.city.name}\n'
+            #          f'Найдено {len(similar_offers)} похожих предложений',
+            #          fontsize=14, fontweight='bold', pad=20)
+
+            # Легенда с улучшенным расположением
+            plt.legend(loc='upper right', fontsize=10, framealpha=0.9, shadow=True)
+
+            # Сетка и оформление
+            plt.grid(True, alpha=0.3, linestyle='--')
+
+            # Добавляем текстовые аннотации
+            stats_text = f'''Статистика:
+            • Средняя цена: {avg_price:,.0f} руб.
+            • Медианная цена: {median_price:,.0f} руб.
+            • Минимальная: {min_price:,.0f} руб.
+            • Максимальная: {max_price:,.0f} руб.
+            • Количество: {len(similar_offers)} предложений'''
+
+            plt.text(0.02, 0.98, stats_text, transform=plt.gca().transAxes,
+                     fontsize=9, verticalalignment='top',
+                     bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.8))
+
+            # Автоматическое форматирование оси X (тысячные разделители)
+            plt.gca().xaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: format(int(x), ',')))
+
+            # Сохраняем в base64
             buffer = io.BytesIO()
-            plt.savefig(buffer, format='png')
+            plt.savefig(buffer, format='png', dpi=120, bbox_inches='tight', facecolor='white')
             buffer.seek(0)
-            test_chart = base64.b64encode(buffer.getvalue()).decode()
+            price_chart = base64.b64encode(buffer.getvalue()).decode()
             buffer.close()
             plt.close()
 
-            charts['test_chart'] = test_chart
-            logger.info("✓ Тестовый график создан")
+            charts['price_distribution'] = price_chart
+            logger.info(f"✓ Основной график создан со статистикой (длина: {len(price_chart)})")
 
-            # Теперь пытаемся создать графики через chart_generator
-            try:
-                chart1 = chart_generator.create_price_distribution_chart(
-                    similar_offers,
-                    apartment_price=float(apartment.desired_price),
-                    title=f"Распределение цен в {apartment.city.name}"
-                )
-                if chart1 and len(chart1) > 100:  # Проверяем, что не пустая строка
-                    charts['price_distribution'] = chart1
-                    logger.info(f"✓ Гистограмма создана ({len(chart1)} символов)")
-                else:
-                    logger.warning(
-                        f"⚠ Гистограмма пустая или слишком короткая: {len(chart1) if chart1 else 0} символов")
-            except Exception as e:
-                logger.error(f"Ошибка гистограммы: {e}")
+            # ГРАФИК 2: Точечный график цена/площадь (опционально)
+            if len(similar_offers) >= 5:
+                plt.figure(figsize=(12, 7))
+                areas = [float(offer.area) for offer in similar_offers]
+                prices = [float(offer.price) for offer in similar_offers]
+
+                # Точечный график
+                scatter = plt.scatter(areas, prices, alpha=0.7, color='green', s=100,
+                                      edgecolors='black', linewidth=0.5)
+
+                # Линии регрессии
+                try:
+                    z = np.polyfit(areas, prices, 1)
+                    p = np.poly1d(z)
+                    plt.plot(areas, p(areas), "r--", alpha=0.8, linewidth=2,
+                             label=f'Тренд: y = {z[0]:.1f}x + {z[1]:.1f}')
+                except:
+                    pass
+
+                # Добавляем точку для анализируемой квартиры
+                if apartment.area and apartment.desired_price:
+                    plt.scatter(float(apartment.area), float(apartment.desired_price),
+                                color='red', s=300, marker='*', edgecolors='black', linewidth=2,
+                                label=f'Ваша квартира: {float(apartment.area)} м², {float(apartment.desired_price):,.0f} руб.')
+
+                # Средние линии
+                mean_area = np.mean(areas)
+                mean_price = np.mean(prices)
+                plt.axhline(y=mean_price, color='blue', linestyle=':', alpha=0.5,
+                            label=f'Ср. цена: {mean_price:,.0f} руб.')
+                plt.axvline(x=mean_area, color='blue', linestyle=':', alpha=0.5,
+                            label=f'Ср. площадь: {mean_area:.1f} м²')
+
+                # Настройки
+                plt.xlabel('Площадь (м²)', fontsize=12, fontweight='bold')
+                plt.ylabel('Цена (руб.)', fontsize=12, fontweight='bold')
+                plt.title(f'Зависимость цены от площади в {apartment.city.name}',
+                          fontsize=14, fontweight='bold', pad=20)
+
+                # Форматирование осей
+                plt.gca().yaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: format(int(x), ',')))
+
+                plt.legend(loc='upper left', fontsize=9)
+                plt.grid(True, alpha=0.3, linestyle='--')
+
+                buffer = io.BytesIO()
+                plt.savefig(buffer, format='png', dpi=120, bbox_inches='tight')
+                buffer.seek(0)
+                scatter_chart = base64.b64encode(buffer.getvalue()).decode()
+                buffer.close()
+                plt.close()
+
+                charts['price_vs_area'] = scatter_chart
+                logger.info(f"✓ Точечный график создан")
 
         except Exception as e:
-            logger.error(f"Общая ошибка создания графиков: {e}")
+            logger.error(f"Ошибка создания графиков: {e}")
             import traceback
             logger.error(traceback.format_exc())
+
+    # ОБНОВЛЯЕМ СЕССИЮ с графиками перед отображением
+    analysis_data['charts'] = charts
+    request.session['analysis_results'] = analysis_data
+    request.session.modified = True
+
+    # Логируем информацию
+    logger.info(f"=== ОТЛАДКА analysis_results (после создания) ===")
+    logger.info(f"similar_offers: {len(similar_offers)} предложений")
+    logger.info(f"charts создано: {len(charts)}")
+    logger.info(f"ключи charts: {list(charts.keys())}")
+    if charts:
+        for key in charts.keys():
+            logger.info(f"График '{key}': длина {len(charts[key])} символов")
 
     # Статистика по источникам данных
     sources_stats = MarketOffer.objects.filter(
@@ -323,54 +463,141 @@ def analysis_results(request, apartment_id):
         max_price=Max('price')
     ).order_by('-count')
 
-    debug_info = {
-        'charts_available': CHARTS_AVAILABLE,
-        'has_chart_generator': chart_generator is not None,
-        'similar_count': len(similar_offers),
-        'similar_offers_count_from_session': analysis_data.get('similar_offers_count', 0),
-        'charts_created': len(charts),
-        'similar_offers_sample': [
-            {'price': float(offer.price), 'area': float(offer.area)}
-            for offer in similar_offers[:3]
-        ] if similar_offers else [],
-        'charts_keys': list(charts.keys()) if charts else [],
-    }
-
-    # Логируем всю информацию
-    logger.info(f"=== ОТЛАДКА analysis_results ===")
-    logger.info(f"similar_offers (тип): {type(similar_offers)}")
-    logger.info(f"similar_offers (длина): {len(similar_offers)}")
-    logger.info(f"similar_count из сессии: {analysis_data.get('similar_offers_count', 0)}")
-    logger.info(f"charts создано: {len(charts)}")
-    logger.info(f"ключи charts: {list(charts.keys())}")
-
-    if similar_offers:
-        logger.info(f"Первые 3 предложения:")
-        for i, offer in enumerate(similar_offers[:3]):
-            logger.info(f"  {i + 1}. Цена: {offer.price}, Площадь: {offer.area}")
-
-    if charts:
-        for key in charts.keys():
-            logger.info(f"График '{key}': длина {len(charts[key])} символов")
-
-    similar_offers_list = list(similar_offers[:20]) if similar_offers else []
-
     return render(request, 'analyzer/analysis_results.html', {
         'apartment': apartment,
         'results': formatted_results,
-        'similar_offers': similar_offers_list,  # Гарантированно список
-        'similar_count': len(similar_offers_list),  # Фактическое количество
+        'similar_offers': similar_offers[:20],  # Показываем только 20 для производительности
+        'similar_count': len(similar_offers),
         'charts': charts,
-        'sources_stats': sources_stats,
-        'debug_info': debug_info,
         'title': f'Результаты анализа: {apartment.address}'
     })
 
 
+# analyzer/views.py добавляем:
+
+@login_required
+def apartment_detail(request, pk):
+    """Детальная информация о квартире"""
+    apartment = get_object_or_404(Apartment, pk=pk, user=request.user)
+    report = apartment.analysis_report if hasattr(apartment, 'analysis_report') else None
+
+    # Статистика по этой квартире
+    analysis_count = AnalysisReport.objects.filter(apartment=apartment).count()
+
+    # Похожие предложения в этом городе
+    similar_in_city = MarketOffer.objects.filter(
+        city=apartment.city,
+        rooms=apartment.rooms,
+        is_active=True
+    )[:5]
+
+    context = {
+        'apartment': apartment,
+        'report': report,
+        'analysis_count': analysis_count,
+        'similar_in_city': similar_in_city,
+        'title': f'Квартира: {apartment.address}',
+    }
+
+    return render(request, 'analyzer/apartment_detail.html', context)
+
+
+@login_required
+def delete_apartment(request, pk):
+    """Удаление квартиры"""
+    apartment = get_object_or_404(Apartment, pk=pk, user=request.user)
+
+    if request.method == 'POST':
+        address = apartment.address
+        apartment.delete()
+        messages.success(request, f'Квартира "{address}" удалена')
+        return redirect('analyzer:dashboard')
+
+    return render(request, 'analyzer/confirm_delete.html', {
+        'object': apartment,
+        'object_type': 'квартиру',
+        'title': f'Удаление квартиры: {apartment.address}',
+        'cancel_url': 'analyzer:apartment_detail',
+        'cancel_kwargs': {'pk': apartment.id},
+    })
+
+
+@login_required
+def delete_report(request, pk):
+    """Удаление отчета анализа"""
+    report = get_object_or_404(AnalysisReport, pk=pk, apartment__user=request.user)
+
+    if request.method == 'POST':
+        apartment_address = report.apartment.address
+        report.delete()
+        messages.success(request, f'Отчет анализа для квартиры "{apartment_address}" удален')
+        return redirect('analyzer:dashboard')
+
+    return render(request, 'analyzer/confirm_delete.html', {
+        'object': report,
+        'object_type': 'отчет анализа',
+        'title': f'Удаление отчета анализа',
+        'cancel_url': 'analyzer:analysis_detail',
+        'cancel_kwargs': {'pk': report.id},
+    })
+
+
+@login_required
+def analysis_detail(request, pk):
+    """Детальная информация об отчете анализа"""
+    report = get_object_or_404(AnalysisReport, pk=pk, apartment__user=request.user)
+
+    # Отладочная информация
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.info(f"=== DEBUG analysis_detail ===")
+    logger.info(f"Report ID: {report.id}")
+    logger.info(f"Has chart_image_base64: {bool(report.chart_image_base64)}")
+    logger.info(f"Chart base64 length: {len(report.chart_image_base64) if report.chart_image_base64 else 0}")
+
+    context = {
+        'report': report,
+        'apartment': report.apartment,
+        'title': f'Отчет анализа: {report.apartment.address}',
+    }
+
+    return render(request, 'analyzer/analysis_detail.html', context)
+
+
+#@login_required
+#def compare_reports(request):
+#    """Сравнение нескольких отчетов"""
+#    reports = AnalysisReport.objects.filter(apartment__user=request.user).order_by('-created_at')
+#
+#   if reports.count() < 2:
+#        messages.info(request, 'Для сравнения нужно как минимум 2 отчета анализа')
+#       return redirect('analyzer:dashboard')
+#
+#   # Берем последние 3 отчета для сравнения
+#    reports_to_compare = reports[:3]
+#
+#    # Подготавливаем данные для графика сравнения
+#    comparison_data = []
+#    for report in reports_to_compare:
+#        comparison_data.append({
+#            'address': report.apartment.address[:20] + ('...' if len(report.apartment.address) > 20 else ''),
+#            'full_address': report.apartment.address,
+#            'fair_price': float(report.fair_price),
+#            'desired_price': float(report.apartment.desired_price),
+#            'difference': float(report.price_difference),
+#            'created_at': report.created_at.strftime('%d.%m.%Y'),
+#        })
+#
+#    context = {
+#        'reports': reports_to_compare,
+#        'comparison_data': comparison_data,
+#        'title': 'Сравнение отчетов',
+#    }
+#    return render(request, 'analyzer/compare_reports.html', context)
 
 @login_required
 def save_analysis_report(request, apartment_id):
-    """Сохранение отчета анализа в базу данных"""
+    """Сохранение отчета анализа в базу данных с графиком"""
     apartment = get_object_or_404(Apartment, id=apartment_id, user=request.user)
 
     # Получаем результаты из сессии
@@ -382,6 +609,18 @@ def save_analysis_report(request, apartment_id):
 
     results = analysis_data['results']
 
+    # Получаем график из сессии
+    charts_data = analysis_data.get('charts', {})
+    chart_image_base64 = charts_data.get('price_distribution') if charts_data else None
+
+    # Отладочная информация
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.info(f"=== DEBUG save_analysis_report ===")
+    logger.info(f"Has charts data: {bool(charts_data)}")
+    logger.info(f"Chart keys: {list(charts_data.keys()) if charts_data else 'No charts'}")
+    logger.info(f"Chart base64 length: {len(chart_image_base64) if chart_image_base64 else 0}")
+
     # Проверяем, не существует ли уже отчет
     existing_report = AnalysisReport.objects.filter(apartment=apartment).first()
 
@@ -390,30 +629,48 @@ def save_analysis_report(request, apartment_id):
         existing_report.fair_price = results['fair_price']
         existing_report.price_difference = results['price_difference']
         existing_report.similar_offers_count = results['count']
-        existing_report.avg_price_per_sqm = results['avg_price_per_sqm']
-        existing_report.median_price = results['median_price']
-        existing_report.min_price = results['min_price']
-        existing_report.max_price = results['max_price']
+        existing_report.avg_price_per_sqm = results.get('avg_price_per_sqm', 0)
+        existing_report.avg_price = results.get('avg_price', 0)
+        existing_report.median_price = results.get('median_price', 0)
+        existing_report.min_price = results.get('min_price', 0)
+        existing_report.max_price = results.get('max_price', 0)
         existing_report.recommendation = results['recommendation']
+
+        # Сохраняем график как base64
+        if chart_image_base64:
+            existing_report.chart_image_base64 = chart_image_base64
+            logger.info(f"✓ График сохранен в существующий отчет (длина: {len(chart_image_base64)})")
+        else:
+            logger.warning("⚠ График не найден в сессии")
+
         existing_report.save()
-        messages.success(request, 'Отчет успешно обновлен!')
+        messages.success(request, 'Отчет успешно обновлен с графиком!')
     else:
         # Создаем новый отчет
-        AnalysisReport.objects.create(
+        report = AnalysisReport(
             apartment=apartment,
             fair_price=results['fair_price'],
             price_difference=results['price_difference'],
             similar_offers_count=results['count'],
-            avg_price_per_sqm=results['avg_price_per_sqm'],
-            median_price=results['median_price'],
-            min_price=results['min_price'],
-            max_price=results['max_price'],
+            avg_price_per_sqm=results.get('avg_price_per_sqm', 0),
+            avg_price=results.get('avg_price', 0),
+            median_price=results.get('median_price', 0),
+            min_price=results.get('min_price', 0),
+            max_price=results.get('max_price', 0),
             recommendation=results['recommendation'],
         )
-        messages.success(request, 'Отчет успешно сохранен!')
+
+        # Сохраняем график как base64
+        if chart_image_base64:
+            report.chart_image_base64 = chart_image_base64
+            logger.info(f"✓ График сохранен в новый отчет (длина: {len(chart_image_base64)})")
+        else:
+            logger.warning("⚠ График не найден в сессии при создании отчета")
+
+        report.save()
+        messages.success(request, 'Отчет успешно сохранен с графиком!')
 
     return redirect('analyzer:dashboard')
-
 
 @login_required
 def update_market_data(request):

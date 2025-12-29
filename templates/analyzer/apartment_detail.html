@@ -1,0 +1,224 @@
+<!-- templates/analyzer/apartment_detail.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Хлебные крошки -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'analyzer:dashboard' %}">Личный кабинет</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Детали квартиры</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Заголовок -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i class="fas fa-home text-primary me-2"></i>
+                    {{ title }}
+                </h1>
+                <div>
+                    <a href="{% url 'analyzer:analyze_apartment' apartment.id %}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-chart-line me-1"></i>Проанализировать
+                    </a>
+                    <a href="{% url 'analyzer:dashboard' %}" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-arrow-left me-1"></i>Назад
+                    </a>
+                </div>
+            </div>
+
+            <!-- Карточка с информацией о квартире -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Основная информация
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Адрес</h6>
+                            <h4>{{ apartment.address }}</h4>
+                            <p class="mb-2">
+                                <i class="fas fa-city me-2 text-muted"></i>
+                                <strong>Город:</strong> {{ apartment.city.name }}
+                            </p>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <span class="badge bg-info fs-5 mb-3">
+                                {{ apartment.rooms }}-комнатная
+                            </span>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="text-center p-3">
+                                <h6 class="text-muted">Площадь</h6>
+                                <h3 class="text-primary">{{ apartment.area }} м²</h3>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center p-3">
+                                <h6 class="text-muted">Этаж</h6>
+                                <h3 class="text-primary">{{ apartment.floor }}/{{ apartment.total_floors }}</h3>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center p-3">
+                                <h6 class="text-muted">Желаемая цена</h6>
+                                <h3 class="text-success">{{ apartment.desired_price|floatformat:0 }} руб.</h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <p><strong>Ремонт:</strong> {{ apartment.get_repair_type_display }}</p>
+                            <p><strong>Балкон:</strong> {% if apartment.has_balcony %}Есть{% else %}Нет{% endif %}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Дата добавления:</strong> {{ apartment.created_at|date:"d.m.Y" }}</p>
+                            <p><strong>Координаты:</strong>
+                                {% if apartment.latitude and apartment.longitude %}
+                                    {{ apartment.latitude|floatformat:6 }}, {{ apartment.longitude|floatformat:6 }}
+                                {% else %}
+                                    Не определены
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+
+                    {% if apartment.description %}
+                    <div class="mt-3">
+                        <h6>Описание:</h6>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                {{ apartment.description|linebreaks }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Последний отчет анализа -->
+            {% if report %}
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-line me-2"></i>Последний отчет анализа
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 text-center">
+                            <h6>Справедливая цена</h6>
+                            <h3 class="text-success">{{ report.fair_price|floatformat:0 }} руб.</h3>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <h6>Разница</h6>
+                            <h3 class="{% if report.price_difference > 0 %}text-success{% else %}text-danger{% endif %}">
+                                {{ report.price_difference|floatformat:1 }}%
+                            </h3>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <h6>Похожих предложений</h6>
+                            <h3>{{ report.similar_offers_count }}</h3>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-3">
+                        <a href="{% url 'analyzer:analysis_detail' report.id %}" class="btn btn-outline-success">
+                            <i class="fas fa-external-link-alt me-1"></i>Подробнее об отчете
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Боковая панель -->
+        <div class="col-lg-4">
+            <!-- Действия -->
+            <div class="card mb-4">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">
+                        <i class="fas fa-cogs me-2"></i>Действия
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'analyzer:analyze_apartment' apartment.id %}" class="btn btn-primary">
+                            <i class="fas fa-chart-line me-1"></i>Запустить анализ
+                        </a>
+
+                        <a href="{% url 'analyzer:delete_apartment' apartment.id %}"
+                           class="btn btn-outline-danger"
+                           onclick="return confirm('Вы уверены, что хотите удалить эту квартиру? Все связанные отчеты также будут удалены.');">
+                            <i class="fas fa-trash me-1"></i>Удалить квартиру
+                        </a>
+
+                        <a href="{% url 'analyzer:dashboard' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>Вернуться в кабинет
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Статистика -->
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-pie me-2"></i>Статистика
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Количество анализов:</strong> {{ analysis_count }}</p>
+                    <p><strong>Последний анализ:</strong>
+                        {% if report %}
+                            {{ report.created_at|date:"d.m.Y H:i" }}
+                        {% else %}
+                            Не проводился
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Похожие предложения в городе -->
+            {% if similar_in_city %}
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">
+                        <i class="fas fa-building me-2"></i>Похожие в {{ apartment.city.name }}
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% for offer in similar_in_city %}
+                    <div class="border-bottom pb-2 mb-2">
+                        <small class="text-muted">{{ offer.address|truncatechars:30 }}</small>
+                        <div class="d-flex justify-content-between">
+                            <span>{{ offer.area }} м²</span>
+                            <strong>{{ offer.price|floatformat:0 }} руб.</strong>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    <div class="text-center mt-2">
+                        <a href="{% url 'analyzer:market_offers' %}?city={{ apartment.city.id }}" class="btn btn-sm btn-outline-primary">
+                            Все предложения в городе
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
