@@ -1519,3 +1519,7 @@ INFO 2025-12-29 15:00:18,274 views Number of cities in DB: 4
 INFO 2025-12-29 15:00:18,274 views City names: ['Екатеринбург', 'Москва', 'Новосибирск', 'Санкт-Петербург']
 INFO 2025-12-29 15:00:18,274 views Total apartments: 21
 INFO 2025-12-29 15:00:18,274 views Total offers: 219
+INFO 2025-12-29 15:14:01,282 views === DEBUG analysis_detail ===
+INFO 2025-12-29 15:14:01,282 views Report ID: 23
+INFO 2025-12-29 15:14:01,282 views Has chart_image_base64: True
+INFO 2025-12-29 15:14:01,283 views Chart base64 length: 126248
