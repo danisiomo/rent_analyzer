@@ -29,7 +29,7 @@ urlpatterns = [
     path('analysis/report/<int:report_id>/', views.view_report_detail, name='view_report_detail'),
     path('analysis/<int:pk>/delete/', views.delete_report, name='delete_report'),
     #path('analysis/compare/', views.compare_reports, name='compare_reports'),
-
+    path('market-offers/', views.MarketOffersListView.as_view(), name='market_offers'),
     # Список городов
     path('cities/', views.CityListView.as_view(), name='city_list'),
 

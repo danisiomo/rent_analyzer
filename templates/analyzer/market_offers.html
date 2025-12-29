@@ -3,182 +3,253 @@
 {% block title %}Рыночные предложения{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-lg-10 mx-auto">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1><i class="fas fa-list-alt"></i> Рыночные предложения</h1>
-            <div>
-                <span class="badge bg-success">{{ offers.count }} предложений</span>
-            </div>
-        </div>
+<div class="container mt-4">
+    <h1 class="mb-4">
+        <i class="fas fa-building text-primary"></i> Рыночные предложения
+        <span class="badge bg-secondary">{{ total_offers }}</span>
+    </h1>
 
-        <!-- Фильтры -->
-        <div class="card mb-4">
-            <div class="card-body">
-                <h5 class="card-title"><i class="fas fa-filter"></i> Фильтры</h5>
-                <form method="get" class="row g-3">
-                    <div class="col-md-6">
-                        <label for="city" class="form-label">Город</label>
-                        <select name="city" id="city" class="form-select">
-                            <option value="">Все города</option>
-                            <!-- Здесь будут города -->
-                        </select>
-                    </div>
-                    <div class="col-md-6">
-                        <label for="rooms" class="form-label">Количество комнат</label>
-                        <select name="rooms" id="rooms" class="form-select">
-                            <option value="">Любое</option>
-                            <option value="1">1 комната</option>
-                            <option value="2">2 комнаты</option>
-                            <option value="3">3 комнаты</option>
-                            <option value="4">4+ комнаты</option>
-                        </select>
-                    </div>
-                    <div class="col-12">
+    <!-- Фильтры и сортировка -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Фильтры и сортировка</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-2">
+                <!-- Город -->
+                <div class="col-md-2">
+                    <label class="form-label">Город</label>
+                    <select name="city" class="form-select">
+                        <option value="all">Все города</option>
+                        {% for city in cities %}
+                        <option value="{{ city.id }}"
+                                {% if current_city == city.id|stringformat:"s" %}selected{% endif %}>
+                            {{ city.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Комнаты -->
+                <div class="col-md-2">
+                    <label class="form-label">Комнат</label>
+                    <select name="rooms" class="form-select">
+                        <option value="all">Все</option>
+                        {% for room in rooms_list %}
+                        <option value="{{ room }}"
+                                {% if current_rooms == room|stringformat:"s" %}selected{% endif %}>
+                            {{ room }}-к
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Источник -->
+                <div class="col-md-2">
+                    <label class="form-label">Источник</label>
+                    <select name="source" class="form-select">
+                        <option value="all">Все</option>
+                        {% for source_code, source_name in sources %}
+                        <option value="{{ source_code }}"
+                                {% if current_source == source_code %}selected{% endif %}>
+                            {{ source_name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Цена -->
+                <div class="col-md-2">
+                    <label class="form-label">Цена от</label>
+                    <input type="number" name="min_price" class="form-control"
+                           placeholder="0" value="{{ current_min_price }}">
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">Цена до</label>
+                    <input type="number" name="max_price" class="form-control"
+                           placeholder="100000" value="{{ current_max_price }}">
+                </div>
+
+                <!-- Сортировка -->
+                <div class="col-md-2">
+                    <label class="form-label">Сортировать по</label>
+                    <select name="sort_by" class="form-select">
+                        <option value="date_desc" {% if current_sort == 'date_desc' %}selected{% endif %}>
+                            Сначала новые
+                        </option>
+                        <option value="date_asc" {% if current_sort == 'date_asc' %}selected{% endif %}>
+                            Сначала старые
+                        </option>
+                        <option value="price_asc" {% if current_sort == 'price_asc' %}selected{% endif %}>
+                            Цена: сначала дешевле
+                        </option>
+                        <option value="price_desc" {% if current_sort == 'price_desc' %}selected{% endif %}>
+                            Цена: сначала дороже
+                        </option>
+                        <option value="area_asc" {% if current_sort == 'area_asc' %}selected{% endif %}>
+                            Площадь: сначала меньше
+                        </option>
+                        <option value="area_desc" {% if current_sort == 'area_desc' %}selected{% endif %}>
+                            Площадь: сначала больше
+                        </option>
+                    </select>
+                </div>
+
+                <!-- Кнопки -->
+                <div class="col-12 mt-3">
+                    <div class="d-flex justify-content-between">
                         <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-search"></i> Применить фильтры
+                            <i class="fas fa-filter me-1"></i> Применить фильтры
                         </button>
                         <a href="{% url 'analyzer:market_offers' %}" class="btn btn-outline-secondary">
-                            <i class="fas fa-times"></i> Сбросить
+                            <i class="fas fa-times me-1"></i> Сбросить все
                         </a>
                     </div>
-                </form>
-            </div>
+                </div>
+            </form>
         </div>
+    </div>
 
-        <!-- Список предложений -->
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">Список предложений</h5>
-            </div>
-            <div class="card-body">
-                {% if offers %}
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Адрес</th>
-                                    <th>Город</th>
-                                    <th>Площадь</th>
-                                    <th>Комнаты</th>
-                                    <th>Цена</th>
-                                    <th>Цена за м²</th>
-                                    <th>Источник</th>
-                                    <th>Дата</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for offer in offers %}
-                                <tr>
-                                    <td>{{ offer.address|truncatechars:25 }}</td>
-                                    <td>{{ offer.city.name }}</td>
-                                    <td>{{ offer.area }} м²</td>
-                                    <td>{{ offer.rooms }}-к</td>
-                                    <td><strong>{{ offer.price }} руб.</strong></td>
-                                    <td>{{ offer.price_per_sqm }} руб./м²</td>
-                                    <td>
-                                        <span class="badge bg-info">{{ offer.get_source_display }}</span>
-                                    </td>
-                                    <td>{{ offer.parsed_date|date:"d.m.Y" }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Пагинация -->
-                    {% if is_paginated %}
-                    <nav aria-label="Page navigation">
-                        <ul class="pagination justify-content-center">
-                            {% if page_obj.has_previous %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Назад</a>
-                            </li>
-                            {% endif %}
-                            
-                            {% for num in page_obj.paginator.page_range %}
-                            <li class="page-item {% if page_obj.number == num %}active{% endif %}">
-                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
-                            </li>
-                            {% endfor %}
-                            
-                            {% if page_obj.has_next %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ page_obj.next_page_number }}">Вперед</a>
-                            </li>
-                            {% endif %}
-                        </ul>
-                    </nav>
-                    {% endif %}
-                {% else %}
-                    <div class="text-center py-5">
-                        <i class="fas fa-search fa-3x text-muted mb-3"></i>
-                        <h4>Предложения не найдены</h4>
-                        <p>Попробуйте изменить параметры фильтрации</p>
-                    </div>
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- Статистика -->
-        <div class="row mt-4">
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <h6>Средняя цена</h6>
-                        <h4 class="text-primary">
-                            {% if offers %}
-                                {{ avg_price|floatformat:0 }} руб.
-                            {% else %}
-                                -
-                            {% endif %}
-                        </h4>
-                    </div>
+    <!-- Статистика -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h6>Средняя цена</h6>
+                    <h3 class="text-primary">{{ avg_price|floatformat:0 }} руб.</h3>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <h6>Минимальная цена</h6>
-                        <h4 class="text-success">
-                            {% if offers %}
-                                {{ min_price|floatformat:0 }} руб.
-                            {% else %}
-                                -
-                            {% endif %}
-                        </h4>
-                    </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h6>Минимальная</h6>
+                    <h3 class="text-success">{{ min_price|floatformat:0 }} руб.</h3>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <h6>Максимальная цена</h6>
-                        <h4 class="text-danger">
-                            {% if offers %}
-                                {{ max_price|floatformat:0 }} руб.
-                            {% else %}
-                                -
-                            {% endif %}
-                        </h4>
-                    </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h6>Максимальная</h6>
+                    <h3 class="text-warning">{{ max_price|floatformat:0 }} руб.</h3>
                 </div>
             </div>
         </div>
     </div>
-</div>
-{% endblock %}
 
-{% block extra_js %}
+    <!-- Результаты -->
+    <div class="card">
+        <div class="card-body">
+            {% if offers %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Адрес</th>
+                            <th>Город</th>
+                            <th>Площадь</th>
+                            <th>Комнат</th>
+                            <th>Цена</th>
+                            <th>Цена/м²</th>
+                            <th>Источник</th>
+                            <th>Дата</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for offer in offers %}
+                        <tr>
+                            <td>{{ offer.address|truncatechars:30 }}</td>
+                            <td>{{ offer.city.name }}</td>
+                            <td>{{ offer.area }} м²</td>
+                            <td>
+                                <span class="badge bg-info">{{ offer.rooms }}-к</span>
+                            </td>
+                            <td>
+                                <strong class="text-primary">{{ offer.price|floatformat:0 }} руб.</strong>
+                                {% if offer.floor %}
+                                <br><small>Этаж: {{ offer.floor }}</small>
+                                {% endif %}
+                            </td>
+                            <td>{{ offer.price_per_sqm|floatformat:0 }} руб./м²</td>
+                            <td>
+                                <span class="badge bg-secondary">{{ offer.get_source_display }}</span>
+                            </td>
+                            <td>{{ offer.parsed_date|date:"d.m.Y" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Пагинация -->
+            {% if is_paginated %}
+            <nav class="mt-3">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link"
+                           href="?page={{ page_obj.previous_page_number }}&city={{ current_city }}&rooms={{ current_rooms }}&source={{ current_source }}&min_price={{ current_min_price }}&max_price={{ current_max_price }}&sort_by={{ current_sort }}">
+                            &laquo; Назад
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    <li class="page-item disabled">
+                        <span class="page-link">
+                            Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}
+                        </span>
+                    </li>
+
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link"
+                           href="?page={{ page_obj.next_page_number }}&city={{ current_city }}&rooms={{ current_rooms }}&source={{ current_source }}&min_price={{ current_min_price }}&max_price={{ current_max_price }}&sort_by={{ current_sort }}">
+                            Вперед &raquo;
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                <h5>Предложения не найдены</h5>
+                <p class="text-muted">Попробуйте изменить параметры фильтров</p>
+                <a href="{% url 'analyzer:market_offers' %}" class="btn btn-primary">
+                    Сбросить фильтры
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
 <script>
+// Авто-отправка формы при изменении фильтров
 document.addEventListener('DOMContentLoaded', function() {
-    // Автозаполнение фильтров из URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const city = urlParams.get('city');
-    const rooms = urlParams.get('rooms');
-    
-    if (city) document.getElementById('city').value = city;
-    if (rooms) document.getElementById('rooms').value = rooms;
+    const selects = document.querySelectorAll('select[name="city"], select[name="rooms"], select[name="source"], select[name="sort_by"]');
+    selects.forEach(select => {
+        select.addEventListener('change', function() {
+            this.form.submit();
+        });
+    });
+
+    // Для полей цены - отправка после задержки
+    const priceInputs = document.querySelectorAll('input[name="min_price"], input[name="max_price"]');
+    let timeout;
+
+    priceInputs.forEach(input => {
+        input.addEventListener('input', function() {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => {
+                this.form.submit();
+            }, 800);
+        });
+    });
 });
 </script>
 {% endblock %}

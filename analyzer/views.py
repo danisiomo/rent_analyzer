@@ -11,7 +11,7 @@ from utils.geocoder import geocoder
 from utils.charts import chart_generator
 import logging
 import numpy as np
-
+from analyzer.models import Apartment, City, MarketOffer, AnalysisReport
 
 try:
     from utils.charts import chart_generator
@@ -26,17 +26,59 @@ logger = logging.getLogger(__name__)
 # Главная страница приложения analyzer
 def home(request):
     """Главная страница приложения analyzer"""
-    # Статистика для главной страницы
-    cities = City.objects.all()[:5]  # 5 первых городов
-    total_apartments = Apartment.objects.count()
-    total_offers = MarketOffer.objects.filter(is_active=True).count()
+    import logging
+    logger = logging.getLogger(__name__)
 
-    context = {
-        'cities': cities,
-        'total_apartments': total_apartments,
-        'total_offers': total_offers,
-    }
-    return render(request, 'analyzer/home.html', context)
+    try:
+        # Получаем данные с проверкой
+        cities = City.objects.all()
+        cities_list = list(cities[:8])  # Преобразуем в список
+        total_apartments = Apartment.objects.count()
+        total_offers = MarketOffer.objects.filter(is_active=True).count()
+
+        # Логируем для отладки
+        logger.info(f"=== HOME FUNCTION DEBUG ===")
+        logger.info(f"Type of cities: {type(cities)}")
+        logger.info(f"Number of cities in DB: {cities.count()}")
+        logger.info(f"City names: {[c.name for c in cities_list]}")
+        logger.info(f"Total apartments: {total_apartments}")
+        logger.info(f"Total offers: {total_offers}")
+
+        # Проверяем есть ли данные вообще
+        if cities.count() == 0:
+            logger.warning("В базе нет городов!")
+            # Создаем тестовые города для отладки
+            test_cities = [
+                ('Москва', 150000),
+                ('Санкт-Петербург', 90000),
+                ('Екатеринбург', 60000),
+                ('Новосибирск', 55000),
+            ]
+            for name, price in test_cities:
+                City.objects.get_or_create(name=name, defaults={'avg_price_per_sqm': price})
+            cities = City.objects.all()
+            cities_list = list(cities)
+            logger.info(f"Созданы тестовые города: {[c.name for c in cities_list]}")
+
+        context = {
+            'cities': cities_list,  # Передаем список, а не QuerySet
+            'total_apartments': total_apartments,
+            'total_offers': total_offers,
+        }
+
+        return render(request, 'analyzer/home.html', context)
+
+    except Exception as e:
+        logger.error(f"Ошибка в функции home: {e}")
+        import traceback
+        logger.error(traceback.format_exc())
+
+        # Возвращаем хотя бы пустой контекст при ошибке
+        return render(request, 'analyzer/home.html', {
+            'cities': [],
+            'total_apartments': 0,
+            'total_offers': 0,
+        })
 
 
 @login_required
@@ -739,19 +781,60 @@ class CityListView(ListView):
 
 
 class MarketOffersListView(ListView):
-    """Список рыночных предложений"""
+    """Список рыночных предложений с фильтрами"""
     model = MarketOffer
     template_name = 'analyzer/market_offers.html'
     context_object_name = 'offers'
-    paginate_by = 10
+    paginate_by = 20
 
     def get_queryset(self):
         queryset = MarketOffer.objects.filter(is_active=True)
-        # Фильтрация по городу
+
+        # Получаем параметры фильтрации
         city_id = self.request.GET.get('city')
-        if city_id:
+        rooms = self.request.GET.get('rooms')
+        source = self.request.GET.get('source')
+        min_price = self.request.GET.get('min_price')
+        max_price = self.request.GET.get('max_price')
+        sort_by = self.request.GET.get('sort_by', '-parsed_date')  # Сортировка
+
+        # Применяем фильтры
+        if city_id and city_id != 'all':
             queryset = queryset.filter(city_id=city_id)
-        return queryset.order_by('-parsed_date')
+
+        if rooms and rooms != 'all':
+            queryset = queryset.filter(rooms=int(rooms))
+
+        if source and source != 'all':
+            queryset = queryset.filter(source=source)
+
+        if min_price:
+            try:
+                queryset = queryset.filter(price__gte=float(min_price))
+            except:
+                pass
+
+        if max_price:
+            try:
+                queryset = queryset.filter(price__lte=float(max_price))
+            except:
+                pass
+
+        # Применяем сортировку
+        if sort_by == 'price_asc':
+            queryset = queryset.order_by('price')
+        elif sort_by == 'price_desc':
+            queryset = queryset.order_by('-price')
+        elif sort_by == 'area_asc':
+            queryset = queryset.order_by('area')
+        elif sort_by == 'area_desc':
+            queryset = queryset.order_by('-area')
+        elif sort_by == 'date_asc':
+            queryset = queryset.order_by('parsed_date')
+        else:  # date_desc или по умолчанию
+            queryset = queryset.order_by('-parsed_date')
+
+        return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -759,7 +842,7 @@ class MarketOffersListView(ListView):
 
         # Статистика
         if queryset.exists():
-            prices = [offer.price for offer in queryset]
+            prices = [float(offer.price) for offer in queryset]
             context['avg_price'] = sum(prices) / len(prices)
             context['min_price'] = min(prices)
             context['max_price'] = max(prices)
@@ -767,5 +850,18 @@ class MarketOffersListView(ListView):
             context['avg_price'] = 0
             context['min_price'] = 0
             context['max_price'] = 0
+
+        context['total_offers'] = queryset.count()
+        context['cities'] = City.objects.all()
+        context['rooms_list'] = [1, 2, 3, 4, 5]
+        context['sources'] = MarketOffer.SOURCE_CHOICES
+
+        # Текущие значения фильтров
+        context['current_city'] = self.request.GET.get('city', '')
+        context['current_rooms'] = self.request.GET.get('rooms', '')
+        context['current_source'] = self.request.GET.get('source', '')
+        context['current_min_price'] = self.request.GET.get('min_price', '')
+        context['current_max_price'] = self.request.GET.get('max_price', '')
+        context['current_sort'] = self.request.GET.get('sort_by', 'date_desc')
 
         return context
