@@ -158,3 +158,44 @@ CACHES = {
         'LOCATION': 'unique-snowflake',
     }
 }
+
+# Production settings
+import os
+
+# Определяем что мы на PythonAnywhere
+PYTHONANYWHERE = 'PYTHONANYWHERE_DOMAIN' in os.environ
+
+if PYTHONANYWHERE:
+    DEBUG = False
+    ALLOWED_HOSTS = ['danisiomo.pythonanywhere.com']
+    CSRF_TRUSTED_ORIGINS = ['https://danisiomo.pythonanywhere.com']
+
+    # Безопасность
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
+    # Статика
+    STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+    STATIC_URL = '/static/'
+
+    # Медиа
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+    MEDIA_URL = '/media/'
+
+    # База данных
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        }
+    }
+
+    # Логирование
+    LOGGING['handlers']['file']['filename'] = '/home/danisiomo/rent_analyzer/debug.log'
+
+else:
+    # Локальная разработка
+    DEBUG = True
+    ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+    STATIC_ROOT = BASE_DIR / 'staticfiles'

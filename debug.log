@@ -1523,3 +1523,176 @@ INFO 2025-12-29 15:14:01,282 views === DEBUG analysis_detail ===
 INFO 2025-12-29 15:14:01,282 views Report ID: 23
 INFO 2025-12-29 15:14:01,282 views Has chart_image_base64: True
 INFO 2025-12-29 15:14:01,283 views Chart base64 length: 126248
+INFO 2025-12-29 16:13:01,263 views === HOME FUNCTION DEBUG ===
+INFO 2025-12-29 16:13:01,263 views Type of cities: <class 'django.db.models.query.QuerySet'>
+INFO 2025-12-29 16:13:01,264 views Number of cities in DB: 4
+INFO 2025-12-29 16:13:01,264 views City names: ['Екатеринбург', 'Москва', 'Новосибирск', 'Санкт-Петербург']
+INFO 2025-12-29 16:13:01,264 views Total apartments: 20
+INFO 2025-12-29 16:13:01,264 views Total offers: 219
+INFO 2025-12-29 16:13:06,793 views === HOME FUNCTION DEBUG ===
+INFO 2025-12-29 16:13:06,793 views Type of cities: <class 'django.db.models.query.QuerySet'>
+INFO 2025-12-29 16:13:06,794 views Number of cities in DB: 4
+INFO 2025-12-29 16:13:06,794 views City names: ['Екатеринбург', 'Москва', 'Новосибирск', 'Санкт-Петербург']
+INFO 2025-12-29 16:13:06,794 views Total apartments: 20
+INFO 2025-12-29 16:13:06,794 views Total offers: 219
+INFO 2025-12-29 16:13:12,376 views Создание графиков: 4 предложений
+INFO 2025-12-29 16:13:12,377 views Статистика: avg=34250, median=36800, min=24700, max=38700
+INFO 2025-12-29 16:13:12,702 views === ОТЛАДКА analysis_results (после создания) ===
+INFO 2025-12-29 16:13:12,702 views similar_offers: 4 предложений
+INFO 2025-12-29 16:13:12,703 views charts создано: 1
+INFO 2025-12-29 16:13:12,703 views ключи charts: ['price_distribution']
+INFO 2025-12-29 16:13:12,703 views График 'price_distribution': длина 119936 символов
+INFO 2025-12-29 16:13:14,574 views === DEBUG save_analysis_report ===
+INFO 2025-12-29 16:13:14,574 views Has charts data: True
+INFO 2025-12-29 16:13:14,575 views Chart keys: ['price_distribution']
+INFO 2025-12-29 16:13:14,575 views Chart base64 length: 119936
+INFO 2025-12-29 16:13:15,847 views === DEBUG analysis_detail ===
+INFO 2025-12-29 16:13:15,847 views Report ID: 24
+INFO 2025-12-29 16:13:15,848 views Has chart_image_base64: True
+INFO 2025-12-29 16:13:15,848 views Chart base64 length: 119936
+INFO 2025-12-29 16:13:17,971 views === DEBUG analysis_detail ===
+INFO 2025-12-29 16:13:17,972 views Report ID: 24
+INFO 2025-12-29 16:13:17,972 views Has chart_image_base64: True
+INFO 2025-12-29 16:13:17,972 views Chart base64 length: 119936
+INFO 2025-12-29 16:13:59,083 views === HOME FUNCTION DEBUG ===
+INFO 2025-12-29 16:13:59,083 views Type of cities: <class 'django.db.models.query.QuerySet'>
+INFO 2025-12-29 16:13:59,084 views Number of cities in DB: 4
+INFO 2025-12-29 16:13:59,084 views City names: ['Екатеринбург', 'Москва', 'Новосибирск', 'Санкт-Петербург']
+INFO 2025-12-29 16:13:59,084 views Total apartments: 21
+INFO 2025-12-29 16:13:59,084 views Total offers: 219
+INFO 2025-12-29 16:14:10,218 views Создание графиков: 9 предложений
+INFO 2025-12-29 16:14:10,218 views Статистика: avg=31989, median=32600, min=24700, max=38100
+INFO 2025-12-29 16:14:10,677 views === ОТЛАДКА analysis_results (после создания) ===
+INFO 2025-12-29 16:14:10,677 views similar_offers: 9 предложений
+INFO 2025-12-29 16:14:10,677 views charts создано: 2
+INFO 2025-12-29 16:14:10,677 views ключи charts: ['price_distribution', 'price_vs_area']
+INFO 2025-12-29 16:14:10,678 views График 'price_distribution': длина 144476 символов
+INFO 2025-12-29 16:14:10,678 views График 'price_vs_area': длина 106088 символов
+INFO 2025-12-29 16:14:14,137 views === DEBUG save_analysis_report ===
+INFO 2025-12-29 16:14:14,138 views Has charts data: True
+INFO 2025-12-29 16:14:14,138 views Chart keys: ['price_distribution', 'price_vs_area']
+INFO 2025-12-29 16:14:14,138 views Chart base64 length: 144476
+INFO 2025-12-29 16:14:16,066 views === HOME FUNCTION DEBUG ===
+INFO 2025-12-29 16:14:16,066 views Type of cities: <class 'django.db.models.query.QuerySet'>
+INFO 2025-12-29 16:14:16,067 views Number of cities in DB: 4
+INFO 2025-12-29 16:14:16,067 views City names: ['Екатеринбург', 'Москва', 'Новосибирск', 'Санкт-Петербург']
+INFO 2025-12-29 16:14:16,067 views Total apartments: 22
+INFO 2025-12-29 16:14:16,067 views Total offers: 219
+INFO 2025-12-29 16:14:50,665 views === HOME FUNCTION DEBUG ===
+INFO 2025-12-29 16:14:50,665 views Type of cities: <class 'django.db.models.query.QuerySet'>
+INFO 2025-12-29 16:14:50,665 views Number of cities in DB: 4
+INFO 2025-12-29 16:14:50,665 views City names: ['Екатеринбург', 'Москва', 'Новосибирск', 'Санкт-Петербург']
+INFO 2025-12-29 16:14:50,666 views Total apartments: 22
+INFO 2025-12-29 16:14:50,666 views Total offers: 219
+INFO 2025-12-30 10:37:13,214 views === HOME FUNCTION DEBUG ===
+INFO 2025-12-30 10:37:13,215 views Type of cities: <class 'django.db.models.query.QuerySet'>
+INFO 2025-12-30 10:37:13,216 views Number of cities in DB: 4
+INFO 2025-12-30 10:37:13,216 views City names: ['Екатеринбург', 'Москва', 'Новосибирск', 'Санкт-Петербург']
+INFO 2025-12-30 10:37:13,216 views Total apartments: 22
+INFO 2025-12-30 10:37:13,217 views Total offers: 219
+INFO 2025-12-30 10:37:14,738 views === HOME FUNCTION DEBUG ===
+INFO 2025-12-30 10:37:14,738 views Type of cities: <class 'django.db.models.query.QuerySet'>
+INFO 2025-12-30 10:37:14,739 views Number of cities in DB: 4
+INFO 2025-12-30 10:37:14,739 views City names: ['Екатеринбург', 'Москва', 'Новосибирск', 'Санкт-Петербург']
+INFO 2025-12-30 10:37:14,739 views Total apartments: 22
+INFO 2025-12-30 10:37:14,739 views Total offers: 219
+INFO 2025-12-30 10:37:15,582 views === HOME FUNCTION DEBUG ===
+INFO 2025-12-30 10:37:15,582 views Type of cities: <class 'django.db.models.query.QuerySet'>
+INFO 2025-12-30 10:37:15,583 views Number of cities in DB: 4
+INFO 2025-12-30 10:37:15,583 views City names: ['Екатеринбург', 'Москва', 'Новосибирск', 'Санкт-Петербург']
+INFO 2025-12-30 10:37:15,583 views Total apartments: 22
+INFO 2025-12-30 10:37:15,583 views Total offers: 219
+INFO 2025-12-30 10:37:27,923 views === HOME FUNCTION DEBUG ===
+INFO 2025-12-30 10:37:27,923 views Type of cities: <class 'django.db.models.query.QuerySet'>
+INFO 2025-12-30 10:37:27,924 views Number of cities in DB: 4
+INFO 2025-12-30 10:37:27,924 views City names: ['Екатеринбург', 'Москва', 'Новосибирск', 'Санкт-Петербург']
+INFO 2025-12-30 10:37:27,924 views Total apartments: 22
+INFO 2025-12-30 10:37:27,925 views Total offers: 219
+INFO 2025-12-30 10:37:34,314 views === HOME FUNCTION DEBUG ===
+INFO 2025-12-30 10:37:34,315 views Type of cities: <class 'django.db.models.query.QuerySet'>
+INFO 2025-12-30 10:37:34,315 views Number of cities in DB: 4
+INFO 2025-12-30 10:37:34,315 views City names: ['Екатеринбург', 'Москва', 'Новосибирск', 'Санкт-Петербург']
+INFO 2025-12-30 10:37:34,316 views Total apartments: 22
+INFO 2025-12-30 10:37:34,316 views Total offers: 219
+INFO 2025-12-30 10:37:39,775 views === HOME FUNCTION DEBUG ===
+INFO 2025-12-30 10:37:39,775 views Type of cities: <class 'django.db.models.query.QuerySet'>
+INFO 2025-12-30 10:37:39,776 views Number of cities in DB: 4
+INFO 2025-12-30 10:37:39,776 views City names: ['Екатеринбург', 'Москва', 'Новосибирск', 'Санкт-Петербург']
+INFO 2025-12-30 10:37:39,776 views Total apartments: 22
+INFO 2025-12-30 10:37:39,776 views Total offers: 219
+INFO 2025-12-30 10:38:57,492 views === HOME FUNCTION DEBUG ===
+INFO 2025-12-30 10:38:57,493 views Type of cities: <class 'django.db.models.query.QuerySet'>
+INFO 2025-12-30 10:38:57,493 views Number of cities in DB: 4
+INFO 2025-12-30 10:38:57,493 views City names: ['Екатеринбург', 'Москва', 'Новосибирск', 'Санкт-Петербург']
+INFO 2025-12-30 10:38:57,494 views Total apartments: 22
+INFO 2025-12-30 10:38:57,494 views Total offers: 219
+INFO 2025-12-30 10:39:24,486 views === HOME FUNCTION DEBUG ===
+INFO 2025-12-30 10:39:24,486 views Type of cities: <class 'django.db.models.query.QuerySet'>
+INFO 2025-12-30 10:39:24,487 views Number of cities in DB: 4
+INFO 2025-12-30 10:39:24,487 views City names: ['Екатеринбург', 'Москва', 'Новосибирск', 'Санкт-Петербург']
+INFO 2025-12-30 10:39:24,487 views Total apartments: 22
+INFO 2025-12-30 10:39:24,488 views Total offers: 219
+INFO 2025-12-30 10:39:33,981 views Создание графиков: 5 предложений
+INFO 2025-12-30 10:39:33,982 views Статистика: avg=29140, median=26500, min=24700, max=36300
+INFO 2025-12-30 10:39:34,457 views === ОТЛАДКА analysis_results (после создания) ===
+INFO 2025-12-30 10:39:34,457 views similar_offers: 5 предложений
+INFO 2025-12-30 10:39:34,457 views charts создано: 2
+INFO 2025-12-30 10:39:34,457 views ключи charts: ['price_distribution', 'price_vs_area']
+INFO 2025-12-30 10:39:34,458 views График 'price_distribution': длина 116156 символов
+INFO 2025-12-30 10:39:34,458 views График 'price_vs_area': длина 103400 символов
+INFO 2025-12-30 10:39:36,972 views === DEBUG save_analysis_report ===
+INFO 2025-12-30 10:39:36,972 views Has charts data: True
+INFO 2025-12-30 10:39:36,972 views Chart keys: ['price_distribution', 'price_vs_area']
+INFO 2025-12-30 10:39:36,973 views Chart base64 length: 116156
+INFO 2025-12-30 10:39:41,271 views === DEBUG analysis_detail ===
+INFO 2025-12-30 10:39:41,271 views Report ID: 26
+INFO 2025-12-30 10:39:41,272 views Has chart_image_base64: True
+INFO 2025-12-30 10:39:41,272 views Chart base64 length: 116156
+INFO 2025-12-30 10:39:43,187 views === HOME FUNCTION DEBUG ===
+INFO 2025-12-30 10:39:43,187 views Type of cities: <class 'django.db.models.query.QuerySet'>
+INFO 2025-12-30 10:39:43,188 views Number of cities in DB: 4
+INFO 2025-12-30 10:39:43,188 views City names: ['Екатеринбург', 'Москва', 'Новосибирск', 'Санкт-Петербург']
+INFO 2025-12-30 10:39:43,188 views Total apartments: 23
+INFO 2025-12-30 10:39:43,189 views Total offers: 219
+INFO 2025-12-30 10:39:46,355 views === HOME FUNCTION DEBUG ===
+INFO 2025-12-30 10:39:46,355 views Type of cities: <class 'django.db.models.query.QuerySet'>
+INFO 2025-12-30 10:39:46,356 views Number of cities in DB: 4
+INFO 2025-12-30 10:39:46,356 views City names: ['Екатеринбург', 'Москва', 'Новосибирск', 'Санкт-Петербург']
+INFO 2025-12-30 10:39:46,356 views Total apartments: 23
+INFO 2025-12-30 10:39:46,357 views Total offers: 219
+INFO 2025-12-30 10:39:56,859 views === HOME FUNCTION DEBUG ===
+INFO 2025-12-30 10:39:56,859 views Type of cities: <class 'django.db.models.query.QuerySet'>
+INFO 2025-12-30 10:39:56,860 views Number of cities in DB: 4
+INFO 2025-12-30 10:39:56,860 views City names: ['Екатеринбург', 'Москва', 'Новосибирск', 'Санкт-Петербург']
+INFO 2025-12-30 10:39:56,860 views Total apartments: 23
+INFO 2025-12-30 10:39:56,860 views Total offers: 219
+INFO 2025-12-30 10:43:37,972 views === HOME FUNCTION DEBUG ===
+INFO 2025-12-30 10:43:37,972 views Type of cities: <class 'django.db.models.query.QuerySet'>
+INFO 2025-12-30 10:43:37,973 views Number of cities in DB: 4
+INFO 2025-12-30 10:43:37,973 views City names: ['Екатеринбург', 'Москва', 'Новосибирск', 'Санкт-Петербург']
+INFO 2025-12-30 10:43:37,973 views Total apartments: 23
+INFO 2025-12-30 10:43:37,974 views Total offers: 219
+INFO 2025-12-30 11:24:57,092 views === HOME FUNCTION DEBUG ===
+INFO 2025-12-30 11:24:57,092 views Type of cities: <class 'django.db.models.query.QuerySet'>
+INFO 2025-12-30 11:24:57,093 views Number of cities in DB: 4
+INFO 2025-12-30 11:24:57,093 views City names: ['Екатеринбург', 'Москва', 'Новосибирск', 'Санкт-Петербург']
+INFO 2025-12-30 11:24:57,093 views Total apartments: 23
+INFO 2025-12-30 11:24:57,093 views Total offers: 219
+INFO 2025-12-30 11:24:59,690 views === HOME FUNCTION DEBUG ===
+INFO 2025-12-30 11:24:59,691 views Type of cities: <class 'django.db.models.query.QuerySet'>
+INFO 2025-12-30 11:24:59,691 views Number of cities in DB: 4
+INFO 2025-12-30 11:24:59,691 views City names: ['Екатеринбург', 'Москва', 'Новосибирск', 'Санкт-Петербург']
+INFO 2025-12-30 11:24:59,691 views Total apartments: 23
+INFO 2025-12-30 11:24:59,692 views Total offers: 219
+INFO 2025-12-30 11:25:11,908 views === HOME FUNCTION DEBUG ===
+INFO 2025-12-30 11:25:11,909 views Type of cities: <class 'django.db.models.query.QuerySet'>
+INFO 2025-12-30 11:25:11,909 views Number of cities in DB: 4
+INFO 2025-12-30 11:25:11,909 views City names: ['Екатеринбург', 'Москва', 'Новосибирск', 'Санкт-Петербург']
+INFO 2025-12-30 11:25:11,910 views Total apartments: 21
+INFO 2025-12-30 11:25:11,910 views Total offers: 219
+INFO 2025-12-30 11:25:23,167 views === HOME FUNCTION DEBUG ===
+INFO 2025-12-30 11:25:23,167 views Type of cities: <class 'django.db.models.query.QuerySet'>
+INFO 2025-12-30 11:25:23,167 views Number of cities in DB: 4
+INFO 2025-12-30 11:25:23,168 views City names: ['Екатеринбург', 'Москва', 'Новосибирск', 'Санкт-Петербург']
+INFO 2025-12-30 11:25:23,168 views Total apartments: 21
+INFO 2025-12-30 11:25:23,168 views Total offers: 219
