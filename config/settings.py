@@ -14,7 +14,12 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-ваш-секретный-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'danisiomo.pythonanywhere.com',
+    'www.danisiomo.pythonanywhere.com',
+    '127.0.0.1',
+    'localhost'
+]
 
 # Application definition
 INSTALLED_APPS = [
@@ -167,8 +172,8 @@ PYTHONANYWHERE = 'PYTHONANYWHERE_DOMAIN' in os.environ
 
 if PYTHONANYWHERE:
     DEBUG = False
-    ALLOWED_HOSTS = ['danisiomo.pythonanywhere.com']
-    CSRF_TRUSTED_ORIGINS = ['https://danisiomo.pythonanywhere.com']
+    ALLOWED_HOSTS = ['rentanalyzer.pythonanywhere.com.']
+    CSRF_TRUSTED_ORIGINS = ['https://rentanalyzer.pythonanywhere.com.']
 
     # Безопасность
     SECURE_SSL_REDIRECT = True
@@ -192,7 +197,7 @@ if PYTHONANYWHERE:
     }
 
     # Логирование
-    LOGGING['handlers']['file']['filename'] = '/home/danisiomo/rent_analyzer/debug.log'
+    LOGGING['handlers']['file']['filename'] = '/home/rentanalyzer/rent_analyzer/debug.log'
 
 else:
     # Локальная разработка
