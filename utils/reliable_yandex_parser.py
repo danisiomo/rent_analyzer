@@ -1,6 +1,4 @@
-"""
-Надежный парсер Яндекс.Недвижимость с несколькими стратегиями и fallback
-"""
+
 import requests
 import logging
 import time
@@ -13,12 +11,6 @@ logger = logging.getLogger(__name__)
 
 
 class ReliableYandexRealtyParser:
-    """
-    Надежный парсер Яндекс.Недвижимость с тремя стратегиями:
-    1. Официальное API (если доступно)
-    2. Парсинг через публичные эндпоинты
-    3. Аналитические данные на основе статистики
-    """
 
     def __init__(self):
         self.session = requests.Session()

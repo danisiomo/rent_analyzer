@@ -17,7 +17,7 @@ class OpenStreetMapGeocoder:
 
     def __init__(self):
         self.session = requests.Session()
-        # ВАЖНО: Добавляем пользовательский агент и реферер
+        # Добавляем пользовательский агент и реферер
         self.session.headers.update({
             'User-Agent': 'RentAnalyzerPro/1.0 (educational-project@example.com)',
             'Accept': 'application/json',
@@ -190,7 +190,7 @@ class OpenStreetMapGeocoder:
                 return self._smart_fallback_geocode(normalized_address, city)
 
             # Пробуем каждый вариант
-                # Пробуем каждый вариант
+
                 for i, query in enumerate(query_variants):
                     try:
                         # Увеличиваем задержку для OpenStreetMap

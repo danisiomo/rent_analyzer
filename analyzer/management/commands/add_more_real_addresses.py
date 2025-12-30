@@ -1,4 +1,3 @@
-# analyzer/management/commands/add_more_real_addresses.py
 from django.core.management.base import BaseCommand
 from analyzer.models import City, MarketOffer
 from decimal import Decimal
@@ -234,7 +233,7 @@ class Command(BaseCommand):
                 return random.uniform(1.5, 2.2)
             elif district in ['академический', 'верх-исетский']:
                 return random.uniform(1.2, 1.6)
-            elif district in ['кировский', 'чкловский']:
+            elif district in ['кировский', 'чкаловский']:
                 return random.uniform(1.0, 1.4)
             else:
                 return random.uniform(0.8, 1.2)

@@ -21,11 +21,9 @@ urlpatterns = [
 
     # Тесты
     path('test-charts/', views.test_charts, name='test_charts'),
-
-    # Отчеты анализа (ДОБАВЬТЕ ЭТУ СТРОКУ)
     path('report/<int:pk>/', views.analysis_detail, name='analysis_detail'),
 
-    # Альтернативный маршрут для отчетов (оставьте для совместимости)
+    # Альтернативный маршрут для отчетов
     path('analysis/report/<int:report_id>/', views.view_report_detail, name='view_report_detail'),
     path('analysis/<int:pk>/delete/', views.delete_report, name='delete_report'),
     #path('analysis/compare/', views.compare_reports, name='compare_reports'),

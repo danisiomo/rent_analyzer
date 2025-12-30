@@ -171,7 +171,7 @@ def analyze_apartment(request, apartment_id):
             include_same_floor = filter_form.cleaned_data['include_same_floor']
             min_similar_offers = int(filter_form.cleaned_data['min_similar_offers'])
 
-            # НОВЫЙ ПАРАМЕТР: максимальное расстояние
+            # максимальное расстояние
             max_distance_km = float(filter_form.cleaned_data['max_distance'])
 
             # Запускаем анализ с учетом расстояния
@@ -514,9 +514,6 @@ def analysis_results(request, apartment_id):
         'title': f'Результаты анализа: {apartment.address}'
     })
 
-
-# analyzer/views.py добавляем:
-
 @login_required
 def apartment_detail(request, pk):
     """Детальная информация о квартире"""
@@ -604,38 +601,6 @@ def analysis_detail(request, pk):
     }
 
     return render(request, 'analyzer/analysis_detail.html', context)
-
-
-#@login_required
-#def compare_reports(request):
-#    """Сравнение нескольких отчетов"""
-#    reports = AnalysisReport.objects.filter(apartment__user=request.user).order_by('-created_at')
-#
-#   if reports.count() < 2:
-#        messages.info(request, 'Для сравнения нужно как минимум 2 отчета анализа')
-#       return redirect('analyzer:dashboard')
-#
-#   # Берем последние 3 отчета для сравнения
-#    reports_to_compare = reports[:3]
-#
-#    # Подготавливаем данные для графика сравнения
-#    comparison_data = []
-#    for report in reports_to_compare:
-#        comparison_data.append({
-#            'address': report.apartment.address[:20] + ('...' if len(report.apartment.address) > 20 else ''),
-#            'full_address': report.apartment.address,
-#            'fair_price': float(report.fair_price),
-#            'desired_price': float(report.apartment.desired_price),
-#            'difference': float(report.price_difference),
-#            'created_at': report.created_at.strftime('%d.%m.%Y'),
-#        })
-#
-#    context = {
-#        'reports': reports_to_compare,
-#        'comparison_data': comparison_data,
-#        'title': 'Сравнение отчетов',
-#    }
-#    return render(request, 'analyzer/compare_reports.html', context)
 
 @login_required
 def save_analysis_report(request, apartment_id):

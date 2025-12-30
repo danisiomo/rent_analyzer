@@ -1,4 +1,3 @@
-# utils/geocoder_simple.py
 import requests
 import time
 import logging

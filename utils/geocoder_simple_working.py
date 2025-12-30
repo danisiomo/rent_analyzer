@@ -1,4 +1,3 @@
-# utils/geocoder_simple_working.py
 import requests
 import time
 import logging
@@ -11,9 +10,6 @@ class SimpleWorkingGeocoder:
     """Самый простой рабочий геокодер"""
 
     def geocode(self, address: str, city: str = None) -> Optional[Dict]:
-        """
-        Простейшее геокодирование - копия работающего теста
-        """
         # Форматируем адрес: "ул. Садовая, 4" -> "улица Садовая 4"
         address = address.strip()
 

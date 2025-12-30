@@ -31,11 +31,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'crispy_forms',
     'crispy_bootstrap5',
-    # НАШИ ПРИЛОЖЕНИЯ (убедитесь, что они есть и написаны верно)
-    'users.apps.UsersConfig',  # Вот так
-    'analyzer.apps.AnalyzerConfig',  # Вот так
-
-    # Пока не добавляем 'api', если не уверены, что будем использовать
+    'users.apps.UsersConfig',
+    'analyzer.apps.AnalyzerConfig'
 ]
 
 MIDDLEWARE = [
@@ -54,7 +51,7 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],  # Добавляем папку templates
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -129,15 +126,15 @@ LOGGING = {
     },
 }
 # Internationalization
-LANGUAGE_CODE = 'ru-ru'  # Меняем на русский
+LANGUAGE_CODE = 'ru-ru'
 TIME_ZONE = 'Europe/Moscow'
 USE_I18N = True
 USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = 'static/'
-STATICFILES_DIRS = [BASE_DIR / 'static']  # Для разработки
-STATIC_ROOT = BASE_DIR / 'staticfiles'  # Для production
+STATICFILES_DIRS = [BASE_DIR / 'static']
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Media files
 MEDIA_URL = 'media/'
@@ -146,7 +143,6 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Custom user model (добавим позже)
 # AUTH_USER_MODEL = 'users.CustomUser'
 
 # Login/Logout URLs

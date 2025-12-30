@@ -1,7 +1,3 @@
-"""
-Модуль для парсинга реальных данных из Яндекс.Недвижимость
-с использованием библиотеки yandex-realty-parser
-"""
 import logging
 import time
 from typing import List, Dict, Optional
@@ -27,17 +23,6 @@ class YandexRealtyParser:
             logger.warning("Используется режим fallback с реалистичными данными")
 
     def get_rent_offers(self, city_name: str, rooms: str = "1,2,3", limit: int = 20) -> List[Dict]:
-        """
-        Получение реальных предложений об аренде из Яндекс.Недвижимость
-
-        Args:
-            city_name: Название города
-            rooms: Тип квартиры (например, "1,2,3" или "1")
-            limit: Максимальное количество предложений
-
-        Returns:
-            Список предложений в унифицированном формате
-        """
         if not self.is_available or not self.parser:
             logger.warning("Библиотека не доступна, возвращаем пустой список")
             return []
