@@ -59,19 +59,35 @@ venv\Scripts\activate
 source venv/bin/activate
 
 3. Установка зависимостей
+
 pip install --upgrade pip
+или
+python.exe -m pip install --upgrade pip
+
+# Для Python 3.11-3.12:
 pip install -r requirements.txt
 
-4. Настройка переменных окружения
-Создайте файл .env в корне проекта:
+# Для Python 3.13 (имеет проблемы совместимости):
+pip install Django==5.0.4 numpy==2.4.0 pandas==2.3.3 matplotlib==3.10.8 requests==2.31.0
+pip install django-crispy-forms crispy-bootstrap5 pillow python-dotenv
 
-env
-SECRET_KEY=ваш-секретный-ключ
+4. Настройка окружения
+bash
+# Удалите старый .env файл если есть
+rm .env 2>/dev/null || del .env 2>/dev/null
+
+# Создайте новый .env файл в UTF-8 кодировке
+# Windows PowerShell:
+@"
 DEBUG=True
+SECRET_KEY=django-insecure-your-secret-key-change-this
+ALLOWED_HOSTS=localhost,127.0.0.1
+DATABASE_URL=sqlite:///db.sqlite3
+"@ | Out-File -FilePath .env -Encoding UTF8
 
-Или используйте команду для генерации ключа:
-
-python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+# Создайте папки для статических файлов
+mkdir static
+mkdir staticfiles
 
 5. Применение миграций
 
