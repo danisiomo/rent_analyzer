@@ -7,7 +7,7 @@ from django.db.models import Count, Avg, Min, Max
 from .models import Apartment, City, MarketOffer, AnalysisReport
 from .forms import ApartmentForm, AnalysisFilterForm
 from utils.analyzer import ApartmentAnalyzer
-from utils.geocoder import geocoder
+from utils.geocoder_simple_working import geocoder
 from utils.charts import chart_generator
 import logging
 import numpy as np
