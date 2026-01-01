@@ -178,7 +178,7 @@ class Apartment(models.Model):
 
     def save(self, *args, **kwargs):
         """Автоматическое геокодирование с реалистичным геокодером"""
-        from utils.geocoder_realistic import geocoder  # Новый геокодер
+        from utils.geocoder_simple_working import geocoder
 
         needs_geocoding = (
                 self.address and
@@ -299,7 +299,7 @@ class MarketOffer(models.Model):
 
     def save(self, *args, **kwargs):
         """Автоматическое геокодирование с реалистичным геокодером"""
-        from utils.geocoder_realistic import geocoder  # Новый геокодер
+        from utils.geocoder_simple_working import geocoder
 
         needs_geocoding = (
                 self.address and
